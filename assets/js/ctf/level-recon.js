@@ -48,9 +48,11 @@
       const targets = SERVICES.filter((s) => SHOWN.includes(s.id)).map((s) => ({ ...s, cracked: false }));
       const logins = targets.slice();
 
-      // Dump = the real passwords for every shown login + fixed near-miss decoys, fixed order.
+      // Dump = the real passwords for every shown login + near-miss decoys, shuffled
+      // so the correct passwords are not lined up in the same order as the logins.
       const DECOYS = ["SecureVPN123", "KeepMyMail!", "DeployTheCode1", "MyHRportal!", "EditWiki2025"];
-      const dump = [...targets.map((t) => t.pw), ...DECOYS].map((pw) => ({ pw, used: false }));
+      const shuffle = (a) => { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); const t = a[i]; a[i] = a[j]; a[j] = t; } return a; };
+      const dump = shuffle([...targets.map((t) => t.pw), ...DECOYS]).map((pw) => ({ pw, used: false }));
 
       Object.assign(st, { logins, dump, targets, need: targets.length, got: 0, attempts: 6, time: 0, over: false });
 
