@@ -58,7 +58,7 @@ window.SITE = {
       tags: ["Software Security", "Hardware Security", "Industrial Protocol Fuzzing", "Reverse Engineering", "ICT Infrastructure Security"],
       blurb: "Product and infrastructure security testing across IT and OT. Testing Siemens hardware and software solutions with a focus on web and desktop application penetration testing, protocol testing across multiple industrial protocols like PROFINET, S7comm, OPC UA and Modbus, reverse engineering, as well as testing OT infrastructure in production halls on site." },
     { role: "Software Engineer", org: "GRINTEC GmbH", from: "Nov 2020", to: "Oct 2023", place: "Graz, Austria",
-      tags: ["Fullstack Software Engineer", "Test automation"],
+      tags: ["Full-Stack Software Engineer", "Test automation"],
       blurb: "Software engineer on web applications in the GIS domain. Built features, automated regression testing with Jenkins, Postman and Newman, and handled second and third level support. This engineering background is what I now use to read code and write findings developers can act on." }
   ],
 
