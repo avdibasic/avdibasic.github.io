@@ -435,7 +435,7 @@ then read root.flag.`,
     "assets/js/ctf/level-ot.js",
     "assets/js/ctf/level-physical.js"
   ];
-  const BUILD = "20261109c";   // bump to force browsers past cached game scripts
+  const BUILD = "20261109d";   // bump to force browsers past cached game scripts
   const loadScript = (src) => new Promise((res, rej) => {
     const s = document.createElement("script");
     s.src = src + (src.includes("?") ? "&" : "?") + "v=" + BUILD;
@@ -444,6 +444,17 @@ then read root.flag.`,
   });
   let gameLoad = null;
   async function openGame() {
+    // The CTF range needs a keyboard and a full-size canvas, so it does not play
+    // well on a phone. On narrow screens show a notice instead of loading it.
+    if (window.matchMedia && window.matchMedia("(max-width: 760px)").matches) {
+      $("#game").innerHTML = `
+        <div class="ctf-mobile-note">
+          <strong>Best played on desktop</strong>
+          <p>The CTF range is keyboard-driven and uses full-size game canvases, so it does not play well on a phone or small screen.</p>
+          <p>Open this page on a desktop or laptop browser to walk through the six stages and capture the flags.</p>
+        </div>`;
+      return;
+    }
     if (!gameLoad) gameLoad = GAME_SCRIPTS.reduce((p, src) => p.then(() => loadScript(src)), Promise.resolve());
     try {
       await gameLoad;
