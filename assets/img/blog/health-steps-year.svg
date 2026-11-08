@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 860 420" font-family="ui-monospace, Menlo, monospace">
+<rect x="0" y="0" width="860" height="420" rx="14" fill="#f6f8fc" stroke="#d7dce6"/>
+<text x="60" y="30" font-size="17" font-weight="700" fill="#1a2233">Step count per month — one year of a single Health database</text>
+<line x1="60" y1="364.0" x2="836" y2="364.0" stroke="#e5e9f1"/>
+<text x="52" y="368.0" font-size="11" fill="#5a647d" text-anchor="end">0k</text>
+<line x1="60" y1="319.7" x2="836" y2="319.7" stroke="#e5e9f1"/>
+<text x="52" y="323.7" font-size="11" fill="#5a647d" text-anchor="end">100k</text>
+<line x1="60" y1="275.4" x2="836" y2="275.4" stroke="#e5e9f1"/>
+<text x="52" y="279.4" font-size="11" fill="#5a647d" text-anchor="end">200k</text>
+<line x1="60" y1="231.1" x2="836" y2="231.1" stroke="#e5e9f1"/>
+<text x="52" y="235.1" font-size="11" fill="#5a647d" text-anchor="end">300k</text>
+<line x1="60" y1="186.9" x2="836" y2="186.9" stroke="#e5e9f1"/>
+<text x="52" y="190.9" font-size="11" fill="#5a647d" text-anchor="end">400k</text>
+<line x1="60" y1="142.6" x2="836" y2="142.6" stroke="#e5e9f1"/>
+<text x="52" y="146.6" font-size="11" fill="#5a647d" text-anchor="end">500k</text>
+<line x1="60" y1="98.3" x2="836" y2="98.3" stroke="#e5e9f1"/>
+<text x="52" y="102.3" font-size="11" fill="#5a647d" text-anchor="end">600k</text>
+<line x1="60" y1="54.0" x2="836" y2="54.0" stroke="#e5e9f1"/>
+<text x="52" y="58.0" font-size="11" fill="#5a647d" text-anchor="end">700k</text>
+<rect x="72.3" y="179.3" width="40.1" height="184.7" rx="3" fill="#5aa9a0"/>
+<text x="92.3" y="382" font-size="11" fill="#5a647d" text-anchor="middle">Jan</text>
+<rect x="137.0" y="146.8" width="40.1" height="217.2" rx="3" fill="#2f9b8f"/>
+<text x="157.0" y="382" font-size="11" fill="#5a647d" text-anchor="middle">Feb</text>
+<rect x="201.6" y="73.1" width="40.1" height="290.9" rx="3" fill="#0f766e"/>
+<text x="221.7" y="382" font-size="11" fill="#5a647d" text-anchor="middle">Mar</text>
+<rect x="266.3" y="193.1" width="40.1" height="170.9" rx="3" fill="#5aa9a0"/>
+<text x="286.3" y="382" font-size="11" fill="#5a647d" text-anchor="middle">Apr</text>
+<rect x="331.0" y="181.8" width="40.1" height="182.2" rx="3" fill="#5aa9a0"/>
+<text x="351.0" y="382" font-size="11" fill="#5a647d" text-anchor="middle">May</text>
+<rect x="395.6" y="171.5" width="40.1" height="192.5" rx="3" fill="#5aa9a0"/>
+<text x="415.7" y="382" font-size="11" fill="#5a647d" text-anchor="middle">Jun</text>
+<rect x="460.3" y="163.1" width="40.1" height="200.9" rx="3" fill="#2f9b8f"/>
+<text x="480.3" y="382" font-size="11" fill="#5a647d" text-anchor="middle">Jul</text>
+<rect x="525.0" y="191.8" width="40.1" height="172.2" rx="3" fill="#5aa9a0"/>
+<text x="545.0" y="382" font-size="11" fill="#5a647d" text-anchor="middle">Aug</text>
+<rect x="589.6" y="202.5" width="40.1" height="161.5" rx="3" fill="#5aa9a0"/>
+<text x="609.7" y="382" font-size="11" fill="#5a647d" text-anchor="middle">Sep</text>
+<rect x="654.3" y="177.7" width="40.1" height="186.3" rx="3" fill="#5aa9a0"/>
+<text x="674.3" y="382" font-size="11" fill="#5a647d" text-anchor="middle">Oct</text>
+<rect x="719.0" y="139.7" width="40.1" height="224.3" rx="3" fill="#2f9b8f"/>
+<text x="739.0" y="382" font-size="11" fill="#5a647d" text-anchor="middle">Nov</text>
+<rect x="783.6" y="206.9" width="40.1" height="157.1" rx="3" fill="#5aa9a0"/>
+<text x="803.7" y="382" font-size="11" fill="#5a647d" text-anchor="middle">Dec</text>
+<line x1="60" y1="364" x2="836" y2="364" stroke="#aab2c2"/>
+<text x="836" y="406" font-size="11" fill="#8690a2" text-anchor="end">data_type = 7 (step count), aggregated by month — no identity attached</text>
+</svg>
