@@ -1,9 +1,3 @@
-/* Level 6: Physical Access. Original top-down stealth game on a 2D canvas.
-   Start outside the factory, enter through the main door, reach the server room
-   and open its door, then get back OUT through the entry door undetected. The
-   flag only shows once you've exfiltrated. Figures are drawn here (a burglar for
-   the player, agents for the guards), no third-party assets.
-   This is about tailgating, badges and physical security. Don't do it for real. */
 (() => {
   "use strict";
   const C = window.CTF, clamp = C.clamp, rand = C.rand;
@@ -34,11 +28,11 @@
     walls.push({ x: 23, y: 18, w: 5, h: 3 });
 
     const sx = 34, sy = 16, sw = 7, sh = 8;
-    // top, bottom, right walls solid
+
     walls.push({ x: sx, y: sy, w: sw, h: 0.6 });
     walls.push({ x: sx, y: sy + sh - 0.6, w: sw, h: 0.6 });
     walls.push({ x: sx + sw - 0.6, y: sy, w: 0.6, h: sh });
-    // left wall (facing the factory floor) has a door gap in the middle
+
     const srDoorY = sy + sh / 2 - 1.1;
     walls.push({ x: sx, y: sy, w: 0.6, h: srDoorY - sy });
     walls.push({ x: sx, y: srDoorY + 2.2, w: 0.6, h: sy + sh - (srDoorY + 2.2) });
@@ -54,21 +48,14 @@
     const start = { x: 3, y: 14 };
     const exit = { x: fx - 1.2, y: doorY + doorH / 2, r: 1.1 };
 
-    // Routes run only along open corridors between the buildings above, so agents
-    // never clip a wall. Horizontal lanes sit at y≈8.5 and y≈16; vertical lanes at
-    // x≈19.5, x≈27.5 and x≈12.
-    // Corridors (verified clear of every wall with the agent radius):
-    //  upper lane y≈8.5 (between top buildings y4-7 and mid buildings y10-14)
-    //  mid lane  y≈16  (between mid buildings and lower buildings y18-22)
-    //  verticals x≈19.5 and x≈27.5 run through the gaps between buildings
     const guards = [
-      { route: [[15, 8.5], [32, 8.5]], speed: 2.0 },                   // upper corridor, full width
-      { route: [[19.5, 8.5], [19.5, 16], [28, 16]], speed: 1.9 },      // centre L into mid lane
-      { route: [[30, 16], [32.8, 16], [32.8, 22.8], [30, 22.8]], speed: 2.2 }, // loop just outside server room
-      { route: [[12, 8.5], [12, 16.5], [20, 16.5]], speed: 2.0 },      // left vertical + into mid lane
-      { route: [[27.5, 8.5], [27.5, 16]], speed: 2.3 },                // vertical between right buildings
-      { route: [[21.5, 16], [28, 16]], speed: 1.7 },                   // extra interior agent, mid lane
-      { route: [[6, 10], [6, 18]], speed: 1.6 }                        // outside roamer near the gate
+      { route: [[15, 8.5], [32, 8.5]], speed: 2.0 },
+      { route: [[19.5, 8.5], [19.5, 16], [28, 16]], speed: 1.9 },
+      { route: [[30, 16], [32.8, 16], [32.8, 22.8], [30, 22.8]], speed: 2.2 },
+      { route: [[12, 8.5], [12, 16.5], [20, 16.5]], speed: 2.0 },
+      { route: [[27.5, 8.5], [27.5, 16]], speed: 2.3 },
+      { route: [[21.5, 16], [28, 16]], speed: 1.7 },
+      { route: [[6, 10], [6, 18]], speed: 1.6 }
     ];
     return { walls, cover, doors, entryDoor, serverDoor, serverGoal, start, exit, guards };
   }
@@ -162,7 +149,7 @@
     const pr = 0.3;
     if (doorOpenAt(x, y)) return false;
     for (const r of world.walls) if (x + pr > r.x && x - pr < r.x + r.w && y + pr > r.y && y - pr < r.y + r.h) return true;
-    // cover crates are solid too, you duck behind them, you don't walk through them
+
     for (const r of world.cover) if (x + pr > r.x && x - pr < r.x + r.w && y + pr > r.y && y - pr < r.y + r.h) return true;
     return false;
   }
@@ -192,8 +179,7 @@
     let seen = false;
     for (const gd of st.guards) {
       if (gd.dir === undefined) gd.dir = 1;
-      // ping-pong between waypoints: never traverse a closing segment, so agents
-      // only ever walk the corridors we explicitly drew (no phasing through walls).
+
       let a = gd.route[gd.seg], b = gd.route[gd.seg + gd.dir];
       if (!b) { gd.dir *= -1; b = gd.route[gd.seg + gd.dir]; }
       const len = Math.hypot(b[0] - a[0], b[1] - a[1]) || 1;

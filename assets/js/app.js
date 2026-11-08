@@ -16,14 +16,12 @@
   };
   const fmtDate = (iso) => new Date(iso + "T00:00:00").toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" });
 
-  /* ---------------- Theme ---------------- */
   $("#themeBtn").addEventListener("click", () => {
     const next = document.documentElement.dataset.theme === "light" ? "dark" : "light";
     document.documentElement.dataset.theme = next;
     try { localStorage.setItem("theme", next); } catch (e) {}
   });
 
-  /* ---------------- whoami ---------------- */
   function renderWhoami() {
     const now = S.experience[0];
     $("#heroRole").textContent = SUMMARY;
@@ -36,7 +34,6 @@
     if (L.email) links.push(`<a class="btn" href="${esc(L.email)}">Email</a>`);
     $("#heroLinks").innerHTML = links.join("");
 
-    // escape first, then turn [label](https://url) into a safe link (brackets survive escaping)
     const linkify = (s) => esc(s).replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g,
       (_, label, url) => `<a href="${esc(url)}" target="_blank" rel="noopener">${label}</a>`);
     $("#bio").innerHTML = S.bio.map((p) => `<p>${linkify(p)}</p>`).join("");
@@ -57,7 +54,6 @@
       </li>`).join("");
   }
 
-  /* The one orchestrated moment: type `whoami`, then decode the name. */
   let heroPlayed = false;
   function playHero() {
     if (heroPlayed) return;
@@ -99,7 +95,6 @@
     setTimeout(typeNext, 350);
   }
 
-  /* ---------------- Blog ---------------- */
   let activeTag = "all";
   function renderBlog() {
     const tags = ["all", ...new Set(S.posts.flatMap((p) => p.tags))];
@@ -144,9 +139,6 @@
     if (p) inlineSvgImages($("#article"));
   }
 
-  // Replace <img> SVG figures with the inline SVG so they inherit the page's
-  // theme CSS variables and flip with the light/dark toggle. Falls back to the
-  // plain <img> if the fetch or parse fails.
   function inlineSvgImages(scope) {
     if (!scope) return;
     scope.querySelectorAll('img.post-img[src$=".svg"]').forEach(async (img) => {
@@ -161,11 +153,10 @@
         svg.setAttribute("class", "post-svg");
         if (img.alt) { svg.setAttribute("role", "img"); svg.setAttribute("aria-label", img.alt); }
         img.replaceWith(svg);
-      } catch (e) { /* keep the <img> fallback */ }
+      } catch (e) {  }
     });
   }
 
-  /* ---------------- Research ---------------- */
   function renderResearch() {
     $("#research").innerHTML = S.research.map((r) => {
       const cls = r.status.replace(/\s+/g, "-");
@@ -179,13 +170,12 @@
     }).join("");
   }
 
-  /* ---------------- Tools ---------------- */
   let reposLoaded = false;
   async function loadRepos() {
     if (reposLoaded) return;
     reposLoaded = true;
     const box = $("#repos");
-    // pinned (private / in-progress) repos always show, they are not on the public API
+
     const pinned = (S.pinnedRepos || []).map((r) => `
       <div class="repo is-pinned">
         <span class="rn">${esc(r.name)}${r.status ? ` <span class="repo-badge">${esc(r.status)}</span>` : ""}</span>
@@ -217,7 +207,6 @@
       <div><h3>${esc(g.area)}</h3><ul>${g.tools.map((t) => `<li>${esc(t)}</li>`).join("")}</ul></div>`).join("");
   }
 
-  /* ---------------- Certs ---------------- */
   let certGroup = "all";
   const MONTHS = { jan: 0, feb: 1, mar: 2, apr: 3, may: 4, jun: 5, jul: 6, aug: 7, sep: 8, oct: 9, nov: 10, dec: 11 };
   function issuedTime(c) {
@@ -229,7 +218,7 @@
     $("#certs").innerHTML = S.certs
       .filter((c) => certGroup === "all" || c.group === certGroup)
       .slice()
-      .sort((a, b) => issuedTime(b) - issuedTime(a))   // newest first
+      .sort((a, b) => issuedTime(b) - issuedTime(a))
       .map((c) => `
       <article class="cert ${esc(c.group)}">
         <div class="badge" aria-hidden="true">${esc(c.short)}</div>
@@ -253,10 +242,9 @@
     renderCerts();
   });
 
-  /* ---------------- Shell ---------------- */
   const out = $("#termOut"), input = $("#termInput");
   const hist = []; let hIdx = 0;
-  let shellUser = "guest";                         // becomes "avdibasic" after privesc
+  let shellUser = "guest";
   const ROOT_SHELL_FLAG = "FLAG{priv_esc_to_avdibasic}";
   function setPrompt() {
     const p = $("#termPrompt");
@@ -343,24 +331,24 @@ then read root.flag.`,
       if (f.startsWith("secrets/")) {
         const name = f.slice("secrets/".length);
         if (!secretFiles[name]) return print(`cat: ${esc(f)}: No such file. Try: ls secrets/`, "err");
-        return print(secretFiles[name]());  // may contain safe markup
+        return print(secretFiles[name]());
       }
       if (f === "secrets") return print("cat: secrets: Is a directory. Try: ls secrets/", "err");
       if (!files[f]) return print(`cat: ${esc(f)}: No such file. Run ls to list them.`, "err");
       print(esc(files[f]()));
     },
-    "sudo-l": () => {},  // placeholder (handled in sudo)
+    "sudo-l": () => {},
     sudo: (args) => {
       const sub = args.join(" ").trim();
       if (sub === "-l") return print(
 `User guest may run the following commands on avdibasic.github.io:
     (avdibasic) NOPASSWD: /opt/backup.sh
 <span class="dim"># that's the only thing guest may run as avdibasic, and it's world-writable. run it, as that user.</span>`);
-      // Intended path: abuse the one permitted (world-writable) script by running it as avdibasic.
+
       if (/^-u\s+avdibasic\s+(\/opt\/)?backup\.sh$/.test(sub)) return escalate("sudo -u avdibasic /opt/backup.sh");
-      // Right script, but no runas user means root, which this entry does not permit. Nudge.
+
       if (/^(\/opt\/)?backup\.sh$/.test(sub)) return print(`sudo: you may run /opt/backup.sh as <b>avdibasic</b>, not root. Try: sudo -u avdibasic /opt/backup.sh`, "err");
-      // Trying to run anything else as avdibasic is blocked, reinforces "only what sudo -l allows".
+
       if (/^-u\s+avdibasic\b/.test(sub)) {
         const what = sub.replace(/^-u\s+avdibasic\s*/, "").trim() || "that command";
         return print(`sudo: sorry, user guest is not allowed to execute ${esc(what)} as avdibasic.\nguest may only run <b>/opt/backup.sh</b>. Try: sudo -l`, "err");
@@ -368,7 +356,7 @@ then read root.flag.`,
       print("guest may run very little. Try: sudo -l", "err");
     },
     su: () => {
-      // su needs a password guest doesn't have, the sudo misconfig is the real way up.
+
       print(`su: Authentication failure.\n<span class="dim">you don't have avdibasic's password. check what guest is allowed to run instead: sudo -l</span>`, "err");
     },
     open: (args) => {
@@ -416,7 +404,6 @@ then read root.flag.`,
     print(`<span class="ok">avdibasic.github.io</span> <span class="dim">interactive shell. Type help to begin.</span>`);
   }
 
-  /* ---------------- CTF3D (loaded only when the tab opens) ---------------- */
   const GAME_SCRIPTS = [
     "assets/vendor/three/three.min.js",
     "assets/vendor/three/Pass.js",
@@ -435,7 +422,7 @@ then read root.flag.`,
     "assets/js/ctf/level-ot.js",
     "assets/js/ctf/level-physical.js"
   ];
-  const BUILD = "20261109d";   // bump to force browsers past cached game scripts
+  const BUILD = "20261109d";
   const loadScript = (src) => new Promise((res, rej) => {
     const s = document.createElement("script");
     s.src = src + (src.includes("?") ? "&" : "?") + "v=" + BUILD;
@@ -444,8 +431,7 @@ then read root.flag.`,
   });
   let gameLoad = null;
   async function openGame() {
-    // The CTF range needs a keyboard and a full-size canvas, so it does not play
-    // well on a phone. On narrow screens show a notice instead of loading it.
+
     if (window.matchMedia && window.matchMedia("(max-width: 760px)").matches) {
       $("#game").innerHTML = `
         <div class="ctf-mobile-note">
@@ -465,7 +451,6 @@ then read root.flag.`,
     }
   }
 
-  /* ---------------- Career Road (3D CV) — loads three on demand ---------------- */
   const CV_SCRIPTS = [
     "assets/vendor/three/three.min.js",
     "assets/vendor/three/Pass.js",
@@ -493,7 +478,6 @@ then read root.flag.`,
     }
   }
 
-  /* ---------------- Router ---------------- */
   function route() {
     const hash = decodeURIComponent(location.hash.replace(/^#/, "")) || "whoami";
     let view = hash, tab = hash;
@@ -516,18 +500,16 @@ then read root.flag.`,
     window.scrollTo(0, 0);
   }
 
-  /* ---------------- Boot ---------------- */
   renderWhoami(); renderBlog(); renderResearch(); renderArsenal(); renderCerts();
   $("#year").textContent = new Date().getFullYear();
   window.addEventListener("hashchange", route);
   route();
 
-  // Pull Markdown content (blog/research/about) and re-render once it's in.
   if (typeof window.loadContent === "function") {
     window.loadContent(() => {
       renderWhoami(); renderBlog(); renderResearch();
       const hash = decodeURIComponent(location.hash.replace(/^#/, ""));
-      if (hash.startsWith("blog/")) renderPost(hash.slice(5));  // refresh an open post
+      if (hash.startsWith("blog/")) renderPost(hash.slice(5));
     });
   }
 })();

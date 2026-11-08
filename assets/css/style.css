@@ -1,4 +1,3 @@
-/* ---------- Tokens ---------- */
 :root {
   --bg: #0c1220;
   --surface: #131b2d;
@@ -6,10 +5,10 @@
   --line: #24304a;
   --text: #dce2ee;
   --muted: #8792ab;
-  --accent: #f2b33d;      /* sodium lamp */
+  --accent: #f2b33d;
   --accent-ink: #1a1203;
-  --signal: #6fd3c4;      /* status: live / ok */
-  --warn: #ff8a7a;        /* status: pending */
+  --signal: #6fd3c4;
+  --warn: #ff8a7a;
   --grid: rgba(135, 146, 171, .09);
 
   --mono: "Martian Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
@@ -73,8 +72,6 @@ a { color: inherit; }
   font-family: var(--mono); font-size: var(--step--1); text-decoration: none;
 }
 .skip:focus { top: 1rem; }
-
-/* ---------- Top bar ---------- */
 .bar {
   position: sticky; top: env(safe-area-inset-top, 0px); z-index: 10;
   background: color-mix(in srgb, var(--bg) 88%, transparent);
@@ -115,8 +112,6 @@ a { color: inherit; }
   cursor: pointer; flex: none;
 }
 .theme:hover { color: var(--text); }
-
-/* ---------- Layout ---------- */
 main { flex: 1; width: 100%; max-width: var(--wrap); margin: 0 auto; padding: 0 1.5rem 5rem; outline: none; }
 .view[hidden] { display: none; }
 .view-head { padding: 3.5rem 0 2rem; border-bottom: 1px solid var(--line); margin-bottom: 2rem; }
@@ -130,8 +125,6 @@ main { flex: 1; width: 100%; max-width: var(--wrap); margin: 0 auto; padding: 0 
 }
 .h2::before { content: "# "; color: var(--accent); }
 .lede { color: var(--muted); max-width: 38rem; margin: 0; font-size: var(--step-1); line-height: 1.45; }
-
-/* ---------- Hero ---------- */
 .hero {
   display: grid; grid-template-columns: minmax(0, 1fr) 19rem; gap: 2.5rem; align-items: end;
   padding: 5rem 0 3.5rem; border-bottom: 1px solid var(--line);
@@ -187,8 +180,6 @@ main { flex: 1; width: 100%; max-width: var(--wrap); margin: 0 auto; padding: 0 
   border: 1px solid var(--line); border-radius: var(--r-sm);
   padding: .35rem .65rem; font-size: .9375rem; background: var(--surface);
 }
-
-/* Engagement log: a real chronological sequence, so it gets a rail */
 .log { list-style: none; margin: 0; padding: 0 0 0 1.25rem; border-left: 1px solid var(--line); }
 .log li { position: relative; padding: 0 0 1.6rem .25rem; }
 .log li::before {
@@ -207,8 +198,6 @@ main { flex: 1; width: 100%; max-width: var(--wrap); margin: 0 auto; padding: 0 
   border: 1px solid var(--line); border-radius: 99px; padding: .1rem .55rem;
 }
 .edu .what { font-size: var(--step-0); }
-
-/* ---------- Filters ---------- */
 .filter { display: flex; gap: .4rem; flex-wrap: wrap; margin-top: 1.5rem; }
 .filter button {
   font-family: var(--mono); font-size: var(--step--1);
@@ -217,8 +206,6 @@ main { flex: 1; width: 100%; max-width: var(--wrap); margin: 0 auto; padding: 0 
 }
 .filter button:hover { color: var(--text); }
 .filter button[aria-pressed="true"] { background: var(--text); color: var(--bg); border-color: var(--text); }
-
-/* ---------- Blog ---------- */
 .posts { display: grid; }
 .post-row {
   display: grid; grid-template-columns: 8rem minmax(0, 1fr); gap: 1.5rem;
@@ -245,8 +232,6 @@ main { flex: 1; width: 100%; max-width: var(--wrap); margin: 0 auto; padding: 0 
 .article pre code { background: none; border: 0; padding: 0; font-size: .84rem; line-height: 1.5; color: var(--text); white-space: pre; }
 .post-img { display: block; width: 100%; height: auto; border: 1px solid var(--line); border-radius: var(--r-md); margin: .5rem 0 1.6rem; }
 .post-svg { display: block; width: 100%; max-width: 560px; height: auto; margin: .6rem auto 1.8rem; }
-
-/* Pentesting approach phases */
 .pa-lede { color: var(--muted); max-width: 46rem; margin: 0 0 1.5rem; font-size: var(--step-1); line-height: 1.45; }
 .pa-grid { list-style: none; margin: 0 0 1rem; padding: 0; display: grid; gap: .9rem;
   grid-template-columns: repeat(auto-fill, minmax(330px, 1fr)); }
@@ -266,8 +251,6 @@ code, kbd {
   background: var(--surface-2); border: 1px solid var(--line); border-radius: var(--r-sm);
   padding: .08em .35em;
 }
-
-/* ---------- Research ---------- */
 .research { display: grid; grid-template-columns: repeat(auto-fill, minmax(18rem, 1fr)); gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: var(--r-md); overflow: hidden; }
 .rcard { background: var(--surface); padding: 1.5rem; display: flex; flex-direction: column; gap: .6rem; }
 .rcard .top { display: flex; justify-content: space-between; gap: 1rem; font-family: var(--mono); font-size: var(--step--1); color: var(--muted); }
@@ -280,8 +263,6 @@ code, kbd {
 .state.disclosure-pending { color: var(--warn); }
 .disclosure { max-width: 40rem; }
 .disclosure p { color: var(--muted); }
-
-/* ---------- Tools ---------- */
 .repos { display: grid; grid-template-columns: repeat(auto-fill, minmax(17rem, 1fr)); gap: 1rem; }
 .repo {
   border: 1px solid var(--line); border-radius: var(--r-md); padding: 1.15rem 1.2rem;
@@ -304,8 +285,6 @@ code, kbd {
 .arsenal > div { break-inside: avoid; -webkit-column-break-inside: avoid; page-break-inside: avoid; margin: 0 0 2rem; }
 .arsenal h3 { font: 600 var(--step-0)/1.3 var(--sans); margin: 0 0 .6rem; padding-bottom: .5rem; border-bottom: 1px solid var(--line); }
 .arsenal ul { list-style: none; margin: 0; padding: 0; font-family: var(--mono); font-size: var(--step--1); color: var(--muted); line-height: 2; }
-
-/* ---------- Certs ---------- */
 .certs { display: grid; grid-template-columns: repeat(auto-fill, minmax(20rem, 1fr)); gap: 1rem; }
 .cert {
   position: relative; border: 1px solid var(--line); border-radius: var(--r-md);
@@ -318,7 +297,6 @@ code, kbd {
   border: 1px solid var(--line); background: var(--surface-2); color: var(--text);
   overflow-wrap: anywhere; padding: .3rem;
 }
-/* Each group gets its own filled badge colour */
 .cert.offensive .badge { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
 .cert.engineering .badge { background: #6f8cff; color: #060b1e; border-color: #6f8cff; }
 .cert.management .badge { background: #c58bf0; color: #1a0a26; border-color: #c58bf0; }
@@ -330,8 +308,6 @@ code, kbd {
 .cert dd { margin: 0; overflow-wrap: anywhere; }
 .cert .verify { margin-top: .8rem; font-family: var(--mono); font-size: .75rem; color: var(--accent); text-decoration: none; display: inline-block; }
 .cert .verify:hover { text-decoration: underline; }
-
-/* ---------- Shell ---------- */
 .term {
   border: 1px solid var(--line); border-radius: var(--r-md); background: var(--surface);
   font-family: var(--mono); font-size: .84rem; line-height: 1.7;
@@ -350,16 +326,12 @@ code, kbd {
   font: inherit; caret-color: var(--accent); outline: none;
 }
 .term-in label { white-space: nowrap; }
-
-/* ---------- Footer ---------- */
 .foot {
   max-width: var(--wrap); width: 100%; margin: 0 auto; padding: 1.5rem;
   border-top: 1px solid var(--line);
   display: flex; justify-content: space-between; gap: 1rem; flex-wrap: wrap;
   font-family: var(--mono); font-size: .72rem; color: var(--muted);
 }
-
-/* ---------- Responsive ---------- */
 @media (max-width: 860px) {
   .hero { grid-template-columns: 1fr; padding-top: 3rem; }
   .grid-2 { grid-template-columns: 1fr; gap: 0; }
@@ -369,7 +341,6 @@ code, kbd {
   main { padding: 0 1rem 4rem; }
   .post-row { grid-template-columns: 1fr; gap: .3rem; }
 }
-/* ---------- Approach (framework explorer) ---------- */
 .approach { margin-top: .5rem; }
 
 .fx-subtabs { display: flex; flex-wrap: wrap; gap: .4rem; border-bottom: 1px solid var(--line); padding-bottom: 1rem; margin-bottom: 1.2rem; }
@@ -398,12 +369,7 @@ code, kbd {
 .fx-authorized { color: var(--warn); font-size: var(--step--1); margin: .8rem 0 0; }
 
 .fx-grid { display: grid; grid-template-columns: 1fr; gap: .6rem; margin-top: 1.3rem; }
-/* every card the same width and height as the tallest one (e.g. AML.TA0003):
-   equal 1fr columns, and grid-auto-rows:1fr makes all rows the tallest row's
-   height while the cards stretch to fill it. */
 .fx-grid.is-matrix, .fx-grid.is-query { grid-template-columns: repeat(auto-fill, minmax(22rem, 1fr)); align-items: stretch; grid-auto-rows: 1fr; }
-/* every card fills its grid cell, and grid-auto-rows:1fr makes all rows the
-   tallest row's height, so all cards end up identical regardless of text length */
 .fx-grid.is-matrix .fx-card, .fx-grid.is-query .fx-card { height: 100%; display: flex; flex-direction: column; }
 .fx-grid.is-matrix .fx-card > .fx-card__head, .fx-grid.is-query .fx-card > .fx-card__head { flex: 1 1 auto; }
 
@@ -414,15 +380,11 @@ code, kbd {
 .fx-id { font-family: var(--mono); font-size: var(--step--1); color: var(--accent); white-space: nowrap; padding-top: .1rem; min-width: 5.2rem; }
 .fx-card__text { display: flex; flex-direction: column; gap: .15rem; flex: 1; min-width: 0; }
 .fx-title { font-weight: 600; letter-spacing: -.01em; }
-/* AD/Entra titles can run to two lines; reserve and clamp both lines so cards line up */
 .fx-grid.is-query .fx-title {
   display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; overflow: hidden;
   min-height: 2.6em; line-height: 1.3;
 }
 .fx-summary { color: var(--muted); font-size: var(--step--1); line-height: 1.45; }
-/* Aligned grid: reserve two summary lines in the multi-column views and clamp
-   long collapsed summaries, so every card is the same height; the full text is
-   revealed when the card is opened. */
 .fx-grid.is-matrix .fx-summary, .fx-grid.is-query .fx-summary { min-height: 2.9em; }
 .fx-card.is-expandable:not(.is-open) .fx-summary {
   display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; overflow: hidden;
@@ -452,7 +414,6 @@ code, kbd {
 @media (max-width: 560px) {
   .fx-id { min-width: 4rem; }
   .fx-grid.is-matrix, .fx-grid.is-query { grid-template-columns: 1fr; }
-  /* single column: no fixed height needed, allow more summary text */
   .fx-grid.is-matrix .fx-summary, .fx-grid.is-query .fx-summary { min-height: 0; }
   .fx-grid.is-query .fx-title { min-height: 0; }
   .fx-card.is-expandable:not(.is-open) .fx-summary { -webkit-line-clamp: 3; line-clamp: 3; }
@@ -468,25 +429,18 @@ code, kbd {
   .caret { animation: none; }
   * { scroll-behavior: auto !important; }
 }
-
-/* ---------- Career timeline (whoami) ---------- */
-/* ---------------- Career Road (3D CV) ---------------- */
 .cv { margin: 2.6rem 0 1rem; }
 .cv-head { margin-bottom: 1rem; }
 .cv-badge { font-family: var(--mono); font-size: .6rem; letter-spacing: .1em; vertical-align: middle;
   color: var(--accent-ink); background: var(--accent); border-radius: 4px; padding: .1em .45em; margin-left: .5em; }
 .cv-sub { color: var(--muted); font-size: var(--step--1); margin: .35rem 0 0; max-width: 50rem; }
 .cv-sub kbd { font-family: var(--mono); font-size: .75em; background: var(--surface-2); border: 1px solid var(--line); border-radius: 4px; padding: .05em .4em; color: var(--text); }
-
-/* Stage: 3/4 canvas, 1/4 info panel on desktop. */
 .cv-stage { display: grid; grid-template-columns: 3fr 1fr; gap: .9rem; align-items: stretch;
   height: clamp(420px, 56vh, 620px); }
 .cv-canvas-wrap { position: relative; border-radius: var(--r-md); overflow: hidden;
   background: #070b16; border: 1px solid #1b2742; box-shadow: inset 0 0 70px rgba(0,0,0,.55);
   touch-action: none; user-select: none; -webkit-user-select: none; min-width: 0; }
 .cv-canvas-wrap canvas { display: block; width: 100%; height: 100%; }
-
-/* On-screen D-pad */
 .cv-ctrls { position: absolute; right: 14px; bottom: 14px; display: flex; flex-direction: column; align-items: center; gap: .4rem; z-index: 2; }
 .cv-ctrls-row { display: flex; gap: .4rem; }
 .cv-btn { width: 2.5rem; height: 2.5rem; display: grid; place-items: center; cursor: pointer; font-size: .85rem;
@@ -494,8 +448,6 @@ code, kbd {
   backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); transition: border-color .12s, background .12s; }
 .cv-btn:hover { color: #fff; border-color: var(--signal); }
 .cv-btn:active { background: rgba(111,211,196,.2); transform: translateY(1px); }
-
-/* Info panel (reserved quarter) */
 .cv-panel { border: 1px solid var(--line); border-radius: var(--r-md); background: var(--surface);
   padding: 1rem 1.05rem; overflow-y: auto; min-width: 0; }
 .cvp-empty .cvp-kind, .cvp-kind { display: inline-block; font-family: var(--mono); font-size: .6rem; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); margin-bottom: .5rem; }
@@ -522,8 +474,6 @@ code, kbd {
 .cvp-work { border-left-color: var(--accent); }
 .cvp-edu { border-left-color: #5b8cff; }
 .cvp-cert { border-left-color: var(--signal); }
-
-/* Mobile / narrow: stack so the panel never blocks the view. */
 @media (max-width: 760px) {
   .cv-stage { grid-template-columns: 1fr; height: auto; }
   .cv-canvas-wrap { height: min(62vh, 440px); }

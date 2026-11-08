@@ -1,13 +1,3 @@
-/* Level 5, OT / ICS. A water tank controlled by a PLC over Modbus TCP, port 502.
-   Modbus has no authentication and no encryption: anyone who can reach the PLC on
-   the OT network can read and write its coils and registers directly, including
-   the safety logic. You are on that network. Overflow the tank.
-
-   The high-level interlock would normally stop the pump before the tank overfills,
-   but the interlock is just another coil, so you can switch it off over Modbus like
-   anything else. Disable it, close the drain, start the pump, and raise the setpoint
-   until the tank spills. Do this quickly, before the operators notice the safety
-   system is off. Never do this to a real plant. This is a simulation. */
 (() => {
   "use strict";
   const C = window.CTF, clamp = C.clamp;
@@ -81,7 +71,6 @@
     unmount() { if (raf) cancelAnimationFrame(raf); root && root.remove(); }
   };
 
-  /* ---------------- helpers ---------------- */
   function log(msg, cls) {
     const el = root && root.querySelector("#ot-log");
     if (!el) return;
@@ -91,7 +80,7 @@
     el.appendChild(s); el.scrollTop = el.scrollHeight;
     while (el.children.length > 6) el.removeChild(el.firstChild);
   }
-  // show the actual Modbus write that each control sends, to make the "no auth" point
+
   function modbus(fc, addr, val, label) {
     log(`→ ${fc} write ${addr} = ${val}   202 OK  (${label})`, fc === "FC05" && val === 0 && addr === "coil 00009" ? "err" : "");
   }
@@ -126,7 +115,6 @@
   }
   function setBadge(id, txt, cls) { const e = root.querySelector("#" + id); if (e) { e.textContent = txt; e.className = cls || ""; } }
 
-  /* ---------------- simulation ---------------- */
   function overflow() {
     st.over = true; st.alarm = 1; st.spill = 1;
     C.sfx.hit(); ctx.flash("bad"); ctx.shake && ctx.shake();
@@ -137,19 +125,18 @@
   }
 
   function sim(dt) {
-    // interlock: a real high-level interlock cuts the pump near the top. it only works while armed.
+
     if (st.interlock && st.level >= 85 && st.pump) {
       st.pump = false; st.tripped = true;
       const b = root.querySelector("#ot-pump"); b.textContent = "STOPPED"; b.classList.remove("danger");
       log("$ INTERLOCK tripped at high level. pump stopped by safety logic.", "ok");
     }
-    // flow model, percent per second
+
     const inflow = st.pump ? (st.setpoint / 100) * 14 : 0;
     const outflow = st.drain ? 10 : 0.8;
     st.level = clamp(st.level + (inflow - outflow) * dt, 0, 101);
     if (st.level >= 100 && !st.over) { overflow(); return; }
 
-    // operator attention rises while the safety interlock is disabled, decays while it is armed
     if (!st.interlock) st.attention = clamp(st.attention + dt * 11, 0, 100);
     else st.attention = clamp(st.attention - dt * 8, 0, 100);
     if (st.attention >= 100) {
@@ -164,7 +151,6 @@
     ctx.setProgress(clamp(st.level / 100 * 0.8 + (st.interlock ? 0 : 0.1), 0, 0.96));
   }
 
-  /* ---------------- rendering ---------------- */
   function draw() {
     const light = isLight();
     const col = light
@@ -176,13 +162,11 @@
     for (let x = 0; x < W; x += 34) { g.beginPath(); g.moveTo(x, 0); g.lineTo(x, H); g.stroke(); }
     for (let y = 0; y < H; y += 34) { g.beginPath(); g.moveTo(0, y); g.lineTo(W, y); g.stroke(); }
 
-    // tank geometry
     const tw = Math.min(W * 0.42, 260), th = H * 0.62;
     const tx = (W - tw) / 2, ty = H * 0.16;
     const lvl = clamp(st.level, 0, 101) / 100;
     const waterTop = ty + th * (1 - Math.min(lvl, 1));
 
-    // inflow pipe (top-left into the tank) and its flow
     g.strokeStyle = col.pipe; g.lineWidth = Math.max(8, tw * 0.05); g.lineCap = "round";
     g.beginPath(); g.moveTo(tx - tw * 0.42, ty - 8); g.lineTo(tx + tw * 0.28, ty - 8); g.lineTo(tx + tw * 0.28, ty + 6); g.stroke();
     if (st.pump) {
@@ -191,9 +175,8 @@
       for (let y = ty + 6; y < waterTop; y += 16) { g.beginPath(); g.moveTo(tx + tw * 0.28, y + off); g.lineTo(tx + tw * 0.28, y + off + 7); g.stroke(); }
     }
 
-    // tank body
     g.fillStyle = col.tank; roundRect(tx, ty, tw, th, 8); g.fill();
-    // water
+
     g.save(); roundRect(tx, ty, tw, th, 8); g.clip();
     const grd = g.createLinearGradient(0, waterTop, 0, ty + th);
     grd.addColorStop(0, col.water); grd.addColorStop(1, col.water2);
@@ -203,17 +186,14 @@
     g.lineTo(tx + tw, ty + th); g.lineTo(tx, ty + th); g.closePath(); g.fill();
     g.restore();
 
-    // high-level mark (HH alarm at 85%)
     const hhY = ty + th * (1 - 0.85);
     g.strokeStyle = st.interlock ? col.amber : col.coral; g.setLineDash([6, 5]); g.lineWidth = 1.5;
     g.beginPath(); g.moveTo(tx - 6, hhY); g.lineTo(tx + tw + 6, hhY); g.stroke(); g.setLineDash([]);
     g.fillStyle = st.interlock ? col.amber : col.coral; g.font = `600 ${Math.round(Math.max(8, W * 0.011))}px "Martian Mono", monospace`; g.textAlign = "left";
     g.fillText(st.interlock ? "HH interlock 85%" : "HH interlock OFF", tx + tw + 10, hhY + 4);
 
-    // tank outline
     g.strokeStyle = col.wall; g.lineWidth = 2; roundRect(tx, ty, tw, th, 8); g.stroke();
 
-    // drain pipe (bottom-right)
     g.strokeStyle = col.pipe; g.lineWidth = Math.max(8, tw * 0.05);
     g.beginPath(); g.moveTo(tx + tw * 0.7, ty + th); g.lineTo(tx + tw * 0.7, ty + th + 16); g.lineTo(tx + tw + 30, ty + th + 16); g.stroke();
     if (st.drain) {
@@ -221,19 +201,16 @@
       for (let x = tx + tw * 0.7; x < tx + tw + 26; x += 14) { g.beginPath(); g.moveTo(x + off, ty + th + 16); g.lineTo(x + off + 6, ty + th + 16); g.stroke(); }
     }
 
-    // level readout on the tank
     g.fillStyle = col.ink; g.font = `800 ${Math.round(Math.max(16, tw * 0.13))}px "Martian Mono", monospace`;
     g.textAlign = "center"; g.textBaseline = "middle";
     g.fillText(Math.round(st.level) + "%", tx + tw / 2, ty + th + 44);
     g.textBaseline = "alphabetic";
 
-    // overflow spill
     if (st.spill > 0) {
       g.fillStyle = col.water;
       for (let i = 0; i < 10; i++) { const x = tx + Math.random() * tw; g.fillRect(x, ty - 6 + Math.random() * 10, 3, 10 + Math.random() * 18); }
     }
 
-    // alarm beacon top-left
     alarm(col);
     if (st.flashT > 0) { g.fillStyle = `rgba(${light ? "192,57,43" : "255,70,60"},${0.22 * clamp(st.flashT, 0, 1)})`; g.fillRect(0, 0, W, H); }
   }

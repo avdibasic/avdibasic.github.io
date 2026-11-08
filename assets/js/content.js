@@ -1,15 +1,7 @@
-/* =========================================================================
-   Content loader, pulls blog posts, research entries and the About text
-   from Markdown files under /content, listed in window.SITE.content.
-   No build step: files are fetched at runtime. If fetching fails (e.g. opening
-   index.html straight from disk in some browsers), the site falls back to the
-   inline defaults already in data.js, so it always renders something.
-   ========================================================================= */
 (() => {
   "use strict";
   const S = window.SITE;
 
-  /* ---- tiny front-matter parser: ---\nkey: value\n---\nbody ---- */
   function parseFrontMatter(text) {
     const m = text.match(/^\uFEFF?---\s*\n([\s\S]*?)\n---\s*\n?([\s\S]*)$/);
     if (!m) return { meta: {}, body: text.trim() };
@@ -25,14 +17,13 @@
     return { meta, body: m[2].trim() };
   }
 
-  /* ---- minimal, safe Markdown → HTML (headings, bold/italic/code, links, lists, paragraphs) ---- */
   const esc = (s) => s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
   function inline(s) {
     s = esc(s);
     s = s.replace(/`([^`]+)`/g, (_, t) => `<code>${t}</code>`);
     s = s.replace(/\*\*([^*]+)\*\*/g, (_, t) => `<strong>${t}</strong>`);
     s = s.replace(/(^|[^*])\*([^*]+)\*/g, (_, a, t) => `${a}<em>${t}</em>`);
-    // images ![alt](src), relative or absolute, before the link rule
+
     s = s.replace(/!\[([^\]]*)\]\(([^)\s]+)\)/g, (_, alt, src) => `<img class="post-img" src="${src}" alt="${alt}" loading="lazy">`);
     s = s.replace(/\[([^\]]+)\]\((https?:[^)\s]+)\)/g, (_, t, u) => `<a href="${u}" target="_blank" rel="noopener">${t}</a>`);
     return s;
@@ -46,7 +37,7 @@
     for (const raw of lines) {
       const line = raw.trimEnd();
       let m;
-      if (code !== null) {                                   // inside a fenced code block
+      if (code !== null) {
         if (/^```/.test(line.trim())) { html.push(`<pre><code>${esc(code.join("\n"))}</code></pre>`); code = null; }
         else code.push(raw);
         continue;
@@ -93,8 +84,6 @@
     };
   }
 
-  // Load everything listed in SITE.content, then re-render. Each kind degrades
-  // independently: a failure in one leaves the data.js fallback for that kind.
   window.loadContent = async function loadContent(rerender) {
     const c = S.content || {};
     const jobs = [];

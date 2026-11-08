@@ -1,10 +1,5 @@
-/* =========================================================================
-   SITE CONTENT, edit this file to update the site. No build step needed.
-   ========================================================================= */
-
 window.SITE = {
-  /* Markdown content loaded at runtime from /content (see assets/js/content.js).
-     Add a new .md file and list its name here to publish it. */
+
   content: {
     about: "about.md",
     posts: [
@@ -46,7 +41,6 @@ window.SITE = {
     "Physical Access"
   ],
 
-  /* `blurb` feeds the career-timeline game under whoami. These are placeholders, rewrite them. */
   experience: [
     { role: "Penetration Tester", org: "Brightflare FlexCo", type: "Full-time", from: "Feb 2026", to: "Present", place: "Graz, Austria",
       tags: ["Industrial Infrastructure (OT / ICS)", "Active Directory", "Internal & External Infrastructure", "Web Application Security", "Network Security", "Detection Validation (MITRE ATT&CK)", "Red Teaming", "Secure Code Review", "Social Engineering", "Security Awareness Training", "Physical Access", "Security Research"],
@@ -71,7 +65,6 @@ window.SITE = {
       detail: "A dual bachelor's programme. The first two semesters are full time, and from the third through the sixth semester it runs in a dual format that alternates between study and employment. Delivered in collaboration with FH JOANNEUM and TU Graz in the first year, it covers software engineering, business informatics, information technology and business administration, rounded out with project management, personality development and languages." }
   ],
 
-  /* group: "offensive" | "engineering" | "management" | "other", drives filtering on the Certs tab */
   certs: [
     { name: "OffSec Certified Professional+", short: "OSCP+", issuer: "OffSec", issued: "Aug 2026", expires: "Aug 2029", group: "offensive",
       url: "https://credentials.offsec.com/ec755f36-f5b0-408e-945d-dddb12a0926f",
@@ -107,23 +100,18 @@ window.SITE = {
       learned: "EXIN Agile Scrum Product Owner. Backlog management, prioritisation and the product owner's role within a Scrum team." }
   ],
 
-  /* Blog posts. `body` is plain HTML. The real posts are loaded from content/blog. */
   posts: [],
 
-  /* Research entries. status: "published" | "in progress" | "disclosure pending" */
   research: [
     { title: "OT / ICS vulnerability research — CVEs pending", area: "OT / ICS", status: "disclosure pending", year: "2026",
       summary: "Multiple vulnerabilities reported and awaiting CVE assignment. Writeups and proof-of-concepts will land in the repository once the vendors have fixed them.",
       url: "https://github.com/avdibasic" }
   ],
 
-  /* Pinned repositories shown above the live GitHub list. Use for private or
-     in-progress work that does not appear through the public GitHub API. */
   pinnedRepos: [
     { name: "KulinOne", description: "Offensive Security Platform, in the making.", status: "in progress", private: true }
   ],
 
-  /* Arsenal: tools I reach for on engagements. Groups and tools are alphabetical. */
   arsenal: [
     { area: "Active Directory", tools: ["BloodHound", "Certipy", "Coercer", "Impacket", "Kerbrute", "Ldapdomaindump", "NetExec", "PetitPotam", "PingCastle", "PowerView", "Rubeus", "Whisker"] },
     { area: "C2 & Shells", tools: ["AdaptixC2", "Havoc", "Penelope", "Sliver", "Weevely3"] },

@@ -1,11 +1,7 @@
-/* Level 3, Web app. Exploit a vulnerable application endpoint by endpoint.
-   Each endpoint has a vuln class; you pick the payload that exploits it from
-   a small set. Right payload = breach; a WAF catches obviously wrong tries. */
 (() => {
   "use strict";
   const C = window.CTF, esc = C.esc;
 
-  // Each challenge: an endpoint, the vuln, and 4 candidate payloads (one correct).
   const BANK = [
     {
       ep: "POST /api/login", vuln: "Authentication / SQL injection",
@@ -178,8 +174,7 @@
       <div class="w-vuln">Suspected: <b>${esc(ch.vuln)}</b></div>
       <p class="w-desc">${esc(ch.desc)}</p>
       <div class="w-field">${esc(ch.field)} = <span class="dim">▮</span></div>`;
-    // Build a freshly shuffled display list of the option OBJECTS themselves, so the
-    // button carries a direct reference to its option (no index bookkeeping that can drift).
+
     const shown = ch.options.slice();
     for (let k = shown.length - 1; k > 0; k--) { const j = (Math.random() * (k + 1)) | 0; [shown[k], shown[j]] = [shown[j], shown[k]]; }
     st.shown = shown;
@@ -191,7 +186,7 @@
 
   function choose(pos, btn) {
     if (st.answered || st.over) return;
-    const ch = st.bank[st.i], opt = st.shown[pos];   // the exact option that was shown in this slot
+    const ch = st.bank[st.i], opt = st.shown[pos];
     st.answered = true;
     const btns = root.querySelectorAll(".w-opt");
     btns.forEach((b) => (b.disabled = true));

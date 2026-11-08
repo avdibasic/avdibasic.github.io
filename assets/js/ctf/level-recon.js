@@ -1,13 +1,7 @@
-/* Level 1, Recon & leaked credentials. External attack surface.
-   Scan the target's exposed hosts, pull creds from breach dumps,
-   and match the right credential to the right login before time runs out. */
 (() => {
   "use strict";
   const C = window.CTF, esc = C.esc, rand = C.rand;
 
-  // Each service has ONE fixed, thematic password tied to what the service does.
-  // `clue` is the OSINT note shown on the card so the player can reason it out.
-  // These never change: vpn is always SuperSecureVPN!, mail is always KeepMyMail2026, etc.
   const SERVICES = [
     { id: "vpn", host: "vpn.acme.io", port: "443/https", svc: "SSL VPN", user: "j.walker", hint: "Finance VPN portal",
       pw: "SuperSecureVPN!", clue: "Sticky note in a leaked office photo: “secure vpn access”." },
@@ -22,7 +16,7 @@
     { id: "wiki", host: "wiki.acme.io", port: "8080/http", svc: "Internal wiki", user: "t.berg", hint: "Confluence",
       pw: "EditTheWiki!", clue: "Wiki footer credit hinted the admin password is about editing the wiki." }
   ];
-  // Decoys are near-misses: right theme, wrong exact string.
+
   const DECOY_PW = ["SecureVPN123", "KeepMyMail!", "DeployTheCode1", "LetMeInRemote", "MyHRportal!", "EditWiki2025", "VPNaccess2026", "MailKeeper99"];
 
   const st = {};
@@ -42,14 +36,11 @@
 
     mount(context) {
       ctx = context;
-      // Deterministic: five fixed services are shown and ALL are crackable with their
-      // own themed password. The stage is finished when every credential is guessed.
+
       const SHOWN = ["vpn", "git", "portal", "mail", "rdp"];
       const targets = SERVICES.filter((s) => SHOWN.includes(s.id)).map((s) => ({ ...s, cracked: false }));
       const logins = targets.slice();
 
-      // Dump = the real passwords for every shown login + near-miss decoys, shuffled
-      // so the correct passwords are not lined up in the same order as the logins.
       const DECOYS = ["SecureVPN123", "KeepMyMail!", "DeployTheCode1", "MyHRportal!", "EditWiki2025"];
       const shuffle = (a) => { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); const t = a[i]; a[i] = a[j]; a[j] = t; } return a; };
       const dump = shuffle([...targets.map((t) => t.pw), ...DECOYS]).map((pw) => ({ pw, used: false }));
@@ -89,7 +80,7 @@
 
     onResume() { t0 = performance.now() - st.time * 1000; },
 
-    update() { /* timer handled by its own rAF via tick for pause-awareness */ },
+    update() {  },
 
     unmount() { if (timerRaf) cancelAnimationFrame(timerRaf); root && root.remove(); },
 
@@ -99,7 +90,7 @@
   function tick() {
     timerRaf = requestAnimationFrame(tick);
     if (!ctx.isPlaying() || st.over) { t0 = performance.now() - st.time * 1000; return; }
-    st.time = (performance.now() - t0) / 1000;  // elapsed, informational only
+    st.time = (performance.now() - t0) / 1000;
     root.querySelector("#r-time").textContent = st.time.toFixed(0) + "s";
     ctx.setProgress(st.got / st.need);
   }
@@ -154,7 +145,7 @@
     chips.forEach((chip) => {
       chip.addEventListener("dragstart", (e) => { e.dataTransfer.setData("text/pw", chip.dataset.pw); chip.classList.add("dragging"); });
       chip.addEventListener("dragend", () => chip.classList.remove("dragging"));
-      // tap-to-select fallback for touch
+
       chip.addEventListener("click", () => {
         root.querySelectorAll(".r-chip.sel").forEach((c) => c !== chip && c.classList.remove("sel"));
         chip.classList.toggle("sel");

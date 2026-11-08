@@ -1,24 +1,7 @@
-/* Level 4, Active Directory. A graph labyrinth of users and machines.
-   You are the intruder (a burglar figure). Hop along edges you have the keys for,
-   loot credentials and tickets, and find a path to Domain Admin while a
-   detection sweep hunts you across the graph. Multiple routes exist. */
 (() => {
   "use strict";
   const C = window.CTF, esc = C.esc, rand = C.rand, clamp = C.clamp;
 
-  // Node types: user, computer, server, dc (domain controller / domain admin)
-  // A realistic, always-solvable AD attack chain. Each node's `tech` names the real
-  // technique. Locks are opened by loot you can always reach BEFORE the lock on some path:
-  //   loot "SMB"   = local creds you dumped (opens an SMB lock)
-  //   loot "TICKET"= a Kerberos ticket/hash from kerberoasting (opens a TICKET lock)
-  //   loot "ADMIN" = domain-admin credentials (opens an ADMIN lock → the DC / DA)
-  // The intended path (also discoverable by exploring):
-  //   foothold → WS (dump cached SMB creds) → file server (find svc account) →
-  //   kerberoast svc account (get TICKET) → SQL/admin host (dump ADMIN creds) → DC.
-  // Three scenarios. Each has the SAME solvable shape, a 5-hop chain
-  //   foot → workstation (loot SMB) → file/host (lock SMB) → roast (lock SMB, loot TICKET)
-  //        → db/host (lock TICKET, loot ADMIN) → goal (lock ADMIN)
-  // but different names, flavour and decoy branches, so every retry is solvable.
   const SCENARIOS = [
     {
       ws: ["WS-FIN-07", "WS-HR-12"], wsSub: "workstation",
@@ -104,7 +87,7 @@
 
     mount(context) {
       ctx = context;
-      // wipe all previous state (including looted_* flags) so retries are solvable
+
       Object.keys(st).forEach((k) => delete st[k]);
       const g = buildGraph();
       Object.assign(st, {
@@ -139,13 +122,12 @@
     update() {}
   };
 
-  // SVG coordinate space
   const VW = 1000, VH = 560, COLS = 5;
   function layout() {
     svg.setAttribute("viewBox", `0 0 ${VW} ${VH}`);
     const padX = 90, padY = 70;
     const colW = (VW - padX * 2) / (COLS - 1);
-    // normalise y per column
+
     const byCol = {};
     st.g.nodes.forEach((n) => { (byCol[n.col] = byCol[n.col] || []).push(n); });
     st.g.nodes.forEach((n) => {
@@ -192,7 +174,6 @@
       </g>`;
     }).join("");
 
-    // intruder marker on current node
     const cur = g.map[st.cur];
     const intruder = `<g class="ad-intruder" transform="translate(${cur.x},${cur.y2})">${burglar()}</g>`;
 
@@ -211,14 +192,14 @@
     if (n.t === "computer") return `<rect x="${n.x - r}" y="${n.y2 - r}" width="${r * 2}" height="${r * 2}" rx="5" class="ad-shape"/>`;
     if (n.t === "server") return `<rect x="${n.x - r}" y="${n.y2 - r * .8}" width="${r * 2}" height="${r * 1.6}" rx="3" class="ad-shape"/>`;
     if (n.t === "dc") return `<path d="${hexPath(n.x, n.y2, r)}" class="ad-shape"/>`;
-    return `<circle cx="${n.x}" cy="${n.y2}" r="${r}" class="ad-shape"/>`; // user
+    return `<circle cx="${n.x}" cy="${n.y2}" r="${r}" class="ad-shape"/>`;
   }
   function hexPath(cx, cy, r) {
     let d = "";
     for (let i = 0; i < 6; i++) { const a = Math.PI / 6 + i * Math.PI / 3; const x = cx + r * Math.cos(a), y = cy + r * Math.sin(a); d += (i ? "L" : "M") + x.toFixed(1) + " " + y.toFixed(1); }
     return d + "Z";
   }
-  // small burglar figure: hat, mask, body, in SVG, scaled to sit on a node
+
   function burglar() {
     return `
       <g transform="scale(0.9)">
@@ -238,7 +219,7 @@
     const node = st.g.map[id];
     if (!reachable(id)) return;
     if (st.owned.has(id)) {
-      // retreat to an already-owned node to pick another route; small detection cost, no loot
+
       st.cur = id; st.path.push(id); C.sfx.type(); bumpDetection(3);
       log(`$ moved back to ${node.label}.`, "dim");
       ctx.setProgress(node.col / 4); draw(); return;
@@ -254,7 +235,6 @@
     C.sfx.pickup(); ctx.addScore(120);
     bumpDetection(rand(4.5, 7));
 
-    // loot: add the key to your set (keys persist)
     if (node.loot && !st["looted_" + id]) {
       st["looted_" + id] = true;
       st.keys.add(node.loot);
@@ -281,7 +261,7 @@
     raf = requestAnimationFrame(loop);
     if (!ctx.isPlaying() || st.over) return;
     t += 1 / 60;
-    // slow passive detection rise so lingering is punished (every ~1.5s)
+
     st._acc = (st._acc || 0) + 1 / 60;
     if (st._acc >= 1.5) { st._acc = 0; bumpDetection(1.4); }
     if (hud) {

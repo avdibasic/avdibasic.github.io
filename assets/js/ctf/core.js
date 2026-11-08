@@ -1,12 +1,3 @@
-/* =========================================================================
-   CTF3D core, shared shell for five self-contained levels.
-   Each level module registers itself via CTF.register(level).
-   A level is: { id, name, target, kind, tint, brief, flag, real,
-                 legend:[{icon,text}], mount(ctx), unmount(), ...optional
-                 three-based levels implement update(dt)/resize(); DOM levels
-                 build their own UI inside ctx.layer. Both call ctx.win()/lose()/hit(). }
-   Exposes window.CTF3D = { show(container), hide() }.
-   ========================================================================= */
 (() => {
   "use strict";
 
@@ -15,7 +6,6 @@
   const rand = (a, b) => a + Math.random() * (b - a);
   const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-  /* ---------------- Audio ---------------- */
   let ac = null, muted = false;
   try { muted = localStorage.getItem("ctf3d-muted") === "1"; } catch (e) {}
   function audio() {
@@ -46,7 +36,6 @@
     over: () => tone(320, 0.9, "sawtooth", 0.06, 0, 50)
   };
 
-  /* ---------------- Registry ---------------- */
   const LEVELS = [];
   const CTF = {
     esc, clamp, rand, reduceMotion, sfx, tone,
@@ -54,23 +43,22 @@
   };
   window.CTF = CTF;
 
-  /* ---------------- Shell state ---------------- */
   let stage, ui = {}, inited = false, visible = false, raf = 0, last = 0;
-  let threeRenderer = null;              // shared WebGL renderer, lazily created
+  let threeRenderer = null;
   let best = 0;
   try { best = +localStorage.getItem("ctf3d-best") || 0; } catch (e) {}
 
   const S = {
-    mode: "title",      // title | intro | play | paused | done | over | win
-    idx: 0,             // current level index
+    mode: "title",
+    idx: 0,
     score: 0,
     levelStartScore: 0,
-    flags: {},          // id -> true for captured this run
-    run: "engagement",  // "engagement" (sequential, counts toward root flag) | "practice" (single stage)
-    active: null        // the live level instance
+    flags: {},
+    run: "engagement",
+    active: null
   };
   const ROOT_FLAG = "FLAG{root-dance-full-domain-ownage}";
-  // persistent: which stages the player has ever captured (for the select menu ticks)
+
   let cleared = {};
   try { cleared = JSON.parse(localStorage.getItem("ctf3d-cleared") || "{}") || {}; } catch (e) {}
   function markCleared(id) { cleared[id] = true; try { localStorage.setItem("ctf3d-cleared", JSON.stringify(cleared)); } catch (e) {} }
@@ -79,7 +67,6 @@
     if (S.score > best) { best = S.score; try { localStorage.setItem("ctf3d-best", String(best)); } catch (e) {} }
   }
 
-  /* ---------------- Shared THREE renderer (for 3D levels) ---------------- */
   function getRenderer() {
     if (!threeRenderer && window.THREE) {
       threeRenderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
@@ -89,12 +76,11 @@
     return threeRenderer;
   }
 
-  /* ---------------- Context handed to each level ---------------- */
   function makeContext(level) {
     return {
       CTF, THREE: window.THREE, level,
-      stage, layer: ui.layer,              // DOM levels build UI here
-      getRenderer, makeComposer,           // 3D helpers
+      stage, layer: ui.layer,
+      getRenderer, makeComposer,
       addScore(n) { S.score += n | 0; updateHud(); },
       setProgress(p) { ui.bar.style.transform = `scaleX(${clamp(p, 0, 1)})`; },
       setStatus(txt) { if (ui.status.textContent !== txt) ui.status.textContent = txt; },
@@ -117,7 +103,6 @@
     return c;
   }
 
-  /* ---------------- Flow ---------------- */
   function startRun() { S.run = "engagement"; S.score = 0; S.flags = {}; startLevel(0); }
   function startPractice(i) { S.run = "practice"; S.score = 0; S.flags = {}; startLevel(i); }
 
@@ -186,7 +171,6 @@
     teardownActive();
     ui.hud.hidden = true;
 
-    // Practice mode: single stage, then back to the select menu. No root flag.
     if (S.run === "practice") {
       screen(`
         <div class="g-kicker">Practice · ${esc(L.name)}</div>
@@ -249,7 +233,6 @@
       <div class="g-actions"><button class="g-btn primary" data-act="start">Play again</button><a class="g-btn" href="#whoami">Meet the tester</a></div>`);
   }
 
-  /* ---------------- Screens ---------------- */
   function screen(html) {
     ui.screen.innerHTML = `<div class="g-card">${html}</div>`;
     ui.screen.hidden = false; stage.classList.add("has-screen");
@@ -300,7 +283,6 @@
       <div class="g-actions"><button class="g-btn primary" data-act="play">${esc(L.cta || "Begin")}</button>${S.run === "practice" ? '<button class="g-btn" data-act="select">Back</button>' : ""}</div>`);
   }
 
-  /* ---------------- HUD ---------------- */
   function renderPips(n, max) {
     max = max || 3;
     if (ui.pips.childElementCount !== max) {
@@ -327,7 +309,6 @@
     else if (act === "title") showTitle();
   }
 
-  /* ---------------- DOM ---------------- */
   function buildDom(container) {
     container.innerHTML = `
       <div class="g-stage" tabindex="0" aria-label="CTF3D game">
@@ -365,7 +346,7 @@
       if (a && a.tagName === "BUTTON") { onAction(a.dataset.act); return; }
       const u = e.target.closest("[data-ui]"); if (!u) return;
       if (u.dataset.ui === "pause") S.mode === "paused" ? onAction("resume") : pause();
-      if (u.dataset.ui === "restart") onAction("retry");   // restart this stage; score reverts to the stage's start, not zero
+      if (u.dataset.ui === "restart") onAction("retry");
       if (u.dataset.ui === "close") { if (S.run === "practice") showSelect(); else showTitle(); }
       if (u.dataset.ui === "mute") { muted = !muted; try { localStorage.setItem("ctf3d-muted", muted ? "1" : "0"); } catch (e) {} setMuteIcon(); }
       if (u.dataset.ui === "fs") {
@@ -404,12 +385,10 @@
     ui.mute.setAttribute("aria-pressed", String(muted));
   }
 
-  /* expose canvas holder + shake for 3D levels */
   CTF.mountCanvas = (dom) => { ui.canvasHolder.innerHTML = ""; ui.canvasHolder.appendChild(dom); ui.canvasHolder.hidden = false; };
   CTF.activeShake = () => (S.active ? S.active._shake : 0);
   CTF.decayShake = (dt) => { if (S.active && S.active._shake > 0) S.active._shake = Math.max(0, S.active._shake - dt); };
 
-  /* ---------------- Loop ---------------- */
   function frame(t) {
     raf = requestAnimationFrame(frame);
     const dt = Math.min(0.05, (t - last) / 1000 || 0.016);

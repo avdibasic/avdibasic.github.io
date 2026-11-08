@@ -1,18 +1,15 @@
-/* Level 2, Network segmentation & firewall. 3D tunnel runner. */
 (() => {
   "use strict";
   const C = window.CTF;
 
   const W = 10, H = 6, BX = 4.35, BY = 2.45, PR = 0.3;
   const SPAWN_Z = -105, KILL_Z = 14, TUNNEL_LEN = 240;
-  // This level renders neon geometry with additive blending and bloom, which
-  // only works over a dark background, so it stays dark in both site themes.
+
   const COL = { bg: 0x070b16, amber: 0xf2b33d, teal: 0x6fd3c4, coral: 0xff6b5b, wall: 0x16223d, ink: 0xdce2ee, gold: 0xffd166 };
   function setPalette() {}
   const isLight = () => false;
   const TINT = 0x3fb6a8;
-  // Firewalls / segment boundaries are labelled in a logical order as you pivot
-  // inward from the public internet to OT production, ending at the OT network.
+
   const ZONES = [
     { zone: "Public", labels: ["Public internet", "Edge firewall", "NAT boundary"] },
     { zone: "Office", labels: ["Office VLAN", "Corporate IT", "Proxy / egress FW"] },
@@ -72,7 +69,7 @@
   }
 
   function buildScene(w, h) {
-    setPalette(); labelCache.clear();   // rebuild labels so they match the current theme
+    setPalette(); labelCache.clear();
     scene = new THREE.Scene();
     scene.background = new THREE.Color(COL.bg);
     scene.fog = new THREE.Fog(COL.bg, 22, 108);
@@ -131,8 +128,7 @@
     const xr = W / 2 - w / 2 - .35;
     return { w, h, cy, cx: moving ? 0 : rand(-xr, xr), xr };
   }
-  // Pick the next boundary label, walking the zones in order with distance so the
-  // run reads public -> office -> DMZ -> OT and always ends inside OT production.
+
   function nextWallLabel() {
     const frac = clamp(st.dist / LEN, 0, 0.9999);
     const z = ZONES[Math.min(ZONES.length - 1, Math.floor(frac * ZONES.length))];

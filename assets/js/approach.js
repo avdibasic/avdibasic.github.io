@@ -1,10 +1,3 @@
-/* =========================================================================
-   Approach, framework explorer renderer.
-   Reads window.FRAMEWORKS and renders a two-level explorer (category subtabs →
-   framework → clickable items) into #approachRoot. Navigation uses the hash
-   router (#approach/<category>/<framework>); item detail is an accordion
-   toggled in place. Called from app.js route() via window.Approach.render().
-   ========================================================================= */
 (() => {
   "use strict";
   const F = window.FRAMEWORKS;
@@ -17,7 +10,7 @@
   const byId = (id) => F.frameworks[id];
 
   function resolve(hash) {
-    const parts = (hash || "approach").split("/");           // ["approach", cat?, fw?]
+    const parts = (hash || "approach").split("/");
     let cat = F.categories.find((c) => c.id === parts[1]) || F.categories[0];
     let fwId = parts[2] && cat.frameworks.includes(parts[2]) ? parts[2] : cat.frameworks[0];
     return { cat, fwId };
@@ -63,12 +56,10 @@
     const fw = byId(fwId);
     if (!fw) { root.innerHTML = '<p class="empty">Framework not found.</p>'; return; }
 
-    // Category subtabs
     const subtabs = F.categories.map((c) =>
       `<a class="fx-tab${c.id === cat.id ? " is-active" : ""}" href="#approach/${esc(c.id)}"${c.id === cat.id ? ' aria-current="true"' : ""}>${esc(c.label)}</a>`
     ).join("");
 
-    // Framework chips (only when the category holds more than one)
     const chips = cat.frameworks.length > 1
       ? `<div class="fx-chips" role="tablist">${cat.frameworks.map((id) => {
           const f = byId(id);
@@ -98,7 +89,6 @@
        <p class="fx-attrib">${esc(F.attribution)}</p>`;
   }
 
-  // Accordion: toggle a card open/closed (delegated, bound once).
   function toggle(head) {
     const card = head.closest(".fx-card.is-expandable");
     if (!card) return;

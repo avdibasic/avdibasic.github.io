@@ -1,4 +1,3 @@
-/* CTF3D — the game screen stays dark in both site themes, like a monitor. */
 .game { margin-top: .5rem; }
 .g-stage {
   --g-bg: #070b16; --g-text: #dce2ee; --g-muted: #8f9ab4; --g-line: #26324d;
@@ -10,8 +9,6 @@
 }
 .g-stage:fullscreen { max-height: none; border: 0; border-radius: 0; }
 .g-canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; }
-
-/* HUD */
 .g-hud {
   position: absolute; inset: 0 0 auto; display: grid; grid-template-columns: 1fr minmax(8rem, 22rem) 1fr;
   align-items: start; gap: 1rem; padding: 1rem 1.1rem; pointer-events: none;
@@ -34,7 +31,6 @@
 .g-score { font: 800 1.35rem/1 var(--mono); letter-spacing: -.03em; font-variant-numeric: tabular-nums; }
 
 .g-ctrl { position: absolute; top: .8rem; right: .8rem; display: flex; gap: .35rem; z-index: 3; }
-/* restart, close, pause and fullscreen only make sense while a level is running */
 .g-ctrl [data-ui="restart"], .g-ctrl [data-ui="close"] { display: none; }
 .g-stage.in-level .g-ctrl [data-ui="restart"], .g-stage.in-level .g-ctrl [data-ui="close"] { display: grid; }
 .g-stage.has-screen .g-ctrl [data-ui="pause"], .g-stage.has-screen .g-ctrl [data-ui="fs"],
@@ -50,8 +46,6 @@
 .g-flash-red { animation: gflash .45s ease-out; box-shadow: inset 0 0 120px rgba(255,80,60,.75); }
 .g-flash-teal { animation: gflash .45s ease-out; box-shadow: inset 0 0 120px rgba(111,211,196,.7); }
 @keyframes gflash { from { opacity: 1; } to { opacity: 0; } }
-
-/* Screens */
 .g-screen {
   position: absolute; inset: 0; z-index: 2; display: grid; place-items: center; padding: 1.25rem;
   background: radial-gradient(ellipse at center, rgba(7,11,22,.55), rgba(7,11,22,.88));
@@ -135,8 +129,6 @@
   .g-card { animation: none; }
   .g-logo::after { animation: none; }
 }
-
-/* ---- Light theme: the game screen becomes a bright "monitor" to match the site ---- */
 :root[data-theme="light"] .g-stage {
   --g-bg: #eef1f6; --g-text: #1a2233; --g-muted: #566080; --g-line: #c7cedd;
   --g-amber: #9a5b00; --g-teal: #0f766e; --g-coral: #c0392b;
@@ -145,14 +137,10 @@
 :root[data-theme="light"] .g-pips i { background: #cfd6e3; }
 :root[data-theme="light"] .g-pips i.on { box-shadow: 0 0 8px rgba(154,91,0,.35); }
 :root[data-theme="light"] .g-prog { background: #d6dce8; }
-
-/* Light theme: menu, pause, win and end screens get light surfaces too */
 :root[data-theme="light"] .g-screen { background: radial-gradient(ellipse at center, rgba(238,241,246,.5), rgba(220,226,236,.92)); }
 :root[data-theme="light"] .g-card { background: rgba(255,255,255,.92); }
 :root[data-theme="light"] .g-stats div { background: #f1f4fa; }
 :root[data-theme="light"] .g-keys kbd { background: #e7ecf4; }
 :root[data-theme="light"] .g-logo { text-shadow: 0 0 20px rgba(154,91,0,.18); }
-
-/* Light theme: flag box light instead of black, and white text on the orange primary button */
 :root[data-theme="light"] .g-flag { background: #f1f4fa; }
 :root[data-theme="light"] .g-btn.primary { color: #fff; }

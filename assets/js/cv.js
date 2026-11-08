@@ -1,15 +1,3 @@
-/* =========================================================================
-   Career Road — a 3D, walkable CV under the whoami tab.
-   The visitor walks an operative figure UP a road (ArrowUp / W) and back
-   (ArrowDown / S). Workplaces (SITE.experience) + studies (SITE.education)
-   stand on the LEFT verge, certifications (SITE.certs) on the RIGHT verge,
-   placed in chronological order. Turning left/right (ArrowLeft/Right or A/D)
-   faces that side and locks onto the nearest marker; its details fill the
-   info panel (right on desktop, below the stage on mobile).
-
-   Built on the vendored three.js (r144). app.js loads three, then calls
-   window.CV.mount(stageEl). Idempotent; pauses when scrolled off-screen.
-   ========================================================================= */
 (() => {
   "use strict";
   const S = window.SITE;
@@ -31,7 +19,6 @@
     return y ? +y[1] : null;
   }
 
-  /* ---------------- Build stations from CV data ---------------- */
   const works = (S.experience || []).map((e) => ({
     kind: "work", t: frac(e.from) ?? 0, tEnd: frac(e.to) ?? NOW,
     title: e.role, org: e.org, from: e.from, to: e.to, place: e.place,
@@ -49,13 +36,10 @@
     expires: c.expires, learned: c.learned, url: c.url, group: c.group
   })).filter((s) => s.t);
 
-  // Left side (career): works + studies, oldest first. Right side: certs, oldest first.
   const leftStops = works.concat(edus).sort((a, b) => a.t - b.t);
   const rightStops = certs.slice().sort((a, b) => a.t - b.t);
   if (!leftStops.length && !rightStops.length) return;
 
-  /* ---------------- Layout along the road ---------------- */
-  // Road runs along -Z. Walking "up" (forward) = more negative Z.
   const SEG = 13, START_Z = -8, SIDE_X = 7.2;
   const laneZ = (i) => START_Z - i * SEG;
   leftStops.forEach((s, i) => { s.z = laneZ(i); s.side = -1; });
@@ -64,7 +48,6 @@
   const ROAD_END = laneZ(maxIndex) - 10;
   const WALK_MIN = ROAD_END + 4, WALK_MAX = 6;
 
-  /* ---------------- three.js scene ---------------- */
   let THREE, renderer, scene, camera, composer, bloom;
   let stage, canvasHolder, panelEl;
   let raf = 0, running = false, mounted = false, built = false;
@@ -77,11 +60,9 @@
   let selected = null;
   let colorsDark = true;
 
-  // backdrop (sky gradient, stars, galaxy, Earth, distant city) + meteors,
-  // pinned ahead of the camera so they read as the horizon.
-  const SKY_Z = -150;        // far ahead, down the road
+  const SKY_Z = -150;
   let stars = null, galaxy = null, earth = null, city = null, skyPlane = null;
-  let meteors = [];          // { group, head, trail, size, colorHex, ... }
+  let meteors = [];
   let meteorTimer = 0;
 
   function palette() {
@@ -98,7 +79,6 @@
     };
   }
 
-  /* ---------- sign texture ---------- */
   function hex(n) { return "#" + n.toString(16).padStart(6, "0"); }
   function roundRect(x, X, Y, w, h, r) {
     x.beginPath(); x.moveTo(X + r, Y); x.arcTo(X + w, Y, X + w, Y + h, r);
@@ -146,7 +126,7 @@
     const c = document.createElement("canvas"); c.width = 512; c.height = 96;
     const x = c.getContext("2d");
     x.font = "800 52px 'Martian Mono', monospace"; x.textAlign = "center"; x.textBaseline = "middle";
-    // an outline so the label reads over both the pale sky and the dark buildings
+
     x.lineJoin = "round"; x.miterLimit = 2;
     x.strokeStyle = hex(strokeHex != null ? strokeHex : (colorsDark ? 0x05070d : 0x2a3350));
     x.lineWidth = 7; x.strokeText(text, 256, 52);
@@ -154,7 +134,6 @@
     const t = new THREE.CanvasTexture(c); t.anisotropy = 4; return t;
   }
 
-  /* ---------- cyber road grid texture ---------- */
   function makeGridTexture(P) {
     const s = 128, c = document.createElement("canvas"); c.width = c.height = s;
     const x = c.getContext("2d");
@@ -167,16 +146,13 @@
     const t = new THREE.CanvasTexture(c); t.anisotropy = 4; return t;
   }
 
-  /* ---------- regolith ground: lunar dust at night, Martian dust by day ---------- */
   function makeGroundTexture() {
     const s = 512, c = document.createElement("canvas"); c.width = c.height = s;
     const x = c.getContext("2d");
-    // Both skins share a teal crater accent so they read as the same world, tuned per theme:
-    // dark = deep navy moon, light = a clearly visible cool slate moon. Teal ties them to the road.
+
     const T = colorsDark
       ? { base: "#0e1828", lo: "#070d18", hi: "#17273f", rim: "#2a6f66", spk: "rgba(108,150,158,", dune: "rgba(26,46,76," }
-      // light theme is lit very brightly (ambient 0.85 + key 0.9), which multiplies colours toward white,
-      // so the base is kept deliberately dark here to land as a visible cool-slate moon, with teal craters
+
       : { base: "#636d80", lo: "#474f61", hi: "#858da1", rim: "#4c8c85",  spk: "rgba(40,52,70,",    dune: "rgba(70,82,104," };
     const gr = x.createLinearGradient(0, 0, 0, s);
     gr.addColorStop(0, T.lo); gr.addColorStop(0.5, T.base); gr.addColorStop(1, T.lo);
@@ -207,20 +183,18 @@
     t.wrapS = t.wrapT = THREE.RepeatWrapping; t.anisotropy = 8; return t;
   }
 
-  /* ---------- backdrop: sky gradient + Earth + distant city (both themes),
-                 plus stars + galaxy at night ---------- */
   function buildBackdrop(P) {
     buildSkyPlane(P);
     buildEarth(P);
     buildCity(P);
-    if (!colorsDark) return;   // stars and galaxies only after dark
-    // star field — points scattered on a large dome, biased to the upper hemisphere.
+    if (!colorsDark) return;
+
     const N = 1300, pos = new Float32Array(N * 3), col = new Float32Array(N * 3);
     const palettes = [[0.8, 0.86, 1.0], [0.75, 0.95, 0.95], [1.0, 0.9, 0.78], [0.9, 0.82, 1.0], [1, 1, 1]];
     for (let i = 0; i < N; i++) {
       const x = (Math.random() - 0.5) * 320;
-      const y = 6 + Math.random() * 90;              // above the horizon, well into view
-      const z = SKY_Z - Math.random() * 90;          // spread in depth
+      const y = 6 + Math.random() * 90;
+      const z = SKY_Z - Math.random() * 90;
       pos[i * 3] = x; pos[i * 3 + 1] = y; pos[i * 3 + 2] = z;
       const cc = palettes[(Math.random() * palettes.length) | 0], b = 0.5 + Math.random() * 0.5;
       col[i * 3] = cc[0] * b; col[i * 3 + 1] = cc[1] * b; col[i * 3 + 2] = cc[2] * b;
@@ -232,7 +206,6 @@
     stars.renderOrder = -2; scene.add(stars);
     stars.userData.skyZ = SKY_Z;
 
-    // soft galaxy clouds across the upper sky, in view down the road
     galaxy = new THREE.Group();
     const g1 = galaxySprite(0x6fd3c4, 0xa98bff, 150);
     g1.position.set(-55, 42, SKY_Z + 10); g1.scale.set(70, 70, 1); g1.material.rotation = 0.4; galaxy.add(g1);
@@ -243,7 +216,6 @@
     galaxy.renderOrder = -3; galaxy.userData.skyZ = SKY_Z; scene.add(galaxy);
   }
 
-  /* ---------- gradient sky plane, so the backdrop reads on both themes ---------- */
   function skyGradient(dark) {
     const W = 8, H = 256, c = document.createElement("canvas"); c.width = W; c.height = H;
     const x = c.getContext("2d"), g = x.createLinearGradient(0, 0, 0, H);
@@ -262,11 +234,10 @@
     scene.add(skyPlane);
   }
 
-  /* ---------- cyber Earth: a globe turned toward Europe, with an atmosphere glow ---------- */
   function earthTexture() {
     const W = 1024, H = 512, c = document.createElement("canvas"); c.width = W; c.height = H;
     const x = c.getContext("2d");
-    // Europe (~15E) centred toward the camera (u = 0.25)
+
     const xOf = (lon) => (((((lon - 15) / 360) + 0.25) % 1) + 1) % 1 * W;
     const yOf = (lat) => (90 - lat) / 180 * H;
     const og = x.createLinearGradient(0, 0, 0, H);
@@ -308,8 +279,8 @@
     const globe = new THREE.Mesh(new THREE.SphereGeometry(R, 48, 48),
       new THREE.MeshStandardMaterial({ map: tex, emissive: 0xffffff, emissiveMap: tex,
         emissiveIntensity: colorsDark ? 0.72 : 0.42, roughness: 1, metalness: 0, fog: false }));
-    globe.position.set(0, 46, SKY_Z + 18);       // smaller, centred above the vanishing point
-    globe.rotation.x = -0.28;   // tilt the north pole toward the viewer a touch (Europe faces us)
+    globe.position.set(0, 46, SKY_Z + 18);
+    globe.rotation.x = -0.28;
     const halo = new THREE.Sprite(new THREE.SpriteMaterial({ map: haloTexture(colorsDark),
       transparent: true, depthWrite: false, blending: THREE.AdditiveBlending,
       opacity: colorsDark ? 0.95 : 0.5, fog: false }));
@@ -320,13 +291,12 @@
     scene.add(earth);
   }
 
-  /* ---------- distant cyberpunk skyline on the horizon ---------- */
   function windowTexture(dark, accent) {
     const W = 64, H = 128, c = document.createElement("canvas"); c.width = W; c.height = H;
     const x = c.getContext("2d");
     x.fillStyle = dark ? "#060c17" : "#2a3550"; x.fillRect(0, 0, W, H);
     const acc = "#" + (accent || 0x6fd3c4).toString(16).padStart(6, "0");
-    const cols = [acc, acc, acc, "#ffffff"];   // mostly the building's accent, a few white
+    const cols = [acc, acc, acc, "#ffffff"];
     for (let gy = 6; gy < H - 4; gy += 9) {
       for (let gx = 5; gx < W - 4; gx += 9) {
         if (Math.random() < 0.55) continue;
@@ -341,24 +311,24 @@
   function buildCity(P) {
     city = new THREE.Group();
     const accents = [0x6fd3c4, 0xf2b33d, 0x5b8cff, 0xff6fa5, 0xa98bff];
-    // a few slate body tones so the skyline is not one flat colour
+
     const tones = colorsDark ? [0x0b1322, 0x0e1a31, 0x121d36] : [0x58637f, 0x646f8b, 0x4e586f];
     const N = 50;
     const antMat = new THREE.MeshStandardMaterial({ color: colorsDark ? 0x4a5468 : 0x6a7486, roughness: 0.6, metalness: 0.4, fog: false });
     for (let i = 0; i < N; i++) {
       const bx = (Math.random() - 0.5) * 230;
-      if (Math.abs(bx) < 9) continue;                 // keep the road's vanishing point clear
+      if (Math.abs(bx) < 9) continue;
       const w = 2.0 + Math.random() * 3.4;
       const h = 4 + Math.random() * 14;
       const d = 2.0 + Math.random() * 3.2;
-      const bz = SKY_Z - 14 + Math.random() * 26;     // pushed much further back, smaller skyline
+      const bz = SKY_Z - 14 + Math.random() * 26;
       const accent = accents[(Math.random() * accents.length) | 0];
       const tone = tones[(Math.random() * tones.length) | 0];
       const b = new THREE.Group(); b.position.set(bx, 0, bz);
       const mat = new THREE.MeshStandardMaterial({ color: tone, roughness: 1, metalness: 0.15,
         emissive: accent, emissiveIntensity: colorsDark ? 0.1 : 0.05, fog: false });
       const body = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat); body.position.y = h / 2 - 1; b.add(body);
-      // lit window face
+
       const wt = windowTexture(colorsDark, accent);
       wt.repeat.set(Math.max(1, Math.round(w / 2)), Math.max(2, Math.round(h / 3)));
       const face = new THREE.Mesh(new THREE.PlaneGeometry(w * 0.86, h * 0.9),
@@ -366,11 +336,11 @@
           blending: colorsDark ? THREE.AdditiveBlending : THREE.NormalBlending,
           opacity: colorsDark ? 0.9 : 0.6, fog: false }));
       face.position.set(0, h / 2 - 1, d / 2 + 0.02); b.add(face);
-      // glowing rooftop crown strip
+
       const crown = new THREE.Mesh(new THREE.BoxGeometry(w * 1.03, 0.5, d * 1.03),
         new THREE.MeshStandardMaterial({ color: accent, emissive: accent, emissiveIntensity: colorsDark ? 0.9 : 0.35, roughness: 0.4, fog: false }));
       crown.position.y = h - 1; b.add(crown);
-      // taller towers get a setback top, a mast and a red aircraft beacon
+
       if (h > 13 && Math.random() < 0.6) {
         const w2 = w * 0.6, h2 = 2 + Math.random() * 4;
         const top = new THREE.Mesh(new THREE.BoxGeometry(w2, h2, d * 0.6), mat); top.position.y = h - 1 + h2 / 2; b.add(top);
@@ -395,14 +365,14 @@
     const s = 256, cv = document.createElement("canvas"); cv.width = cv.height = s;
     const x = cv.getContext("2d");
     const col = (h) => "#" + h.toString(16).padStart(6, "0");
-    // soft elliptical nebula with a few spiral wisps
+
     const grd = x.createRadialGradient(s / 2, s / 2, 0, s / 2, s / 2, s / 2);
     grd.addColorStop(0, "rgba(255,255,255,0.9)");
     grd.addColorStop(0.25, col(c1) + "cc");
     grd.addColorStop(0.55, col(c2) + "66");
     grd.addColorStop(1, "rgba(0,0,0,0)");
     x.fillStyle = grd; x.beginPath(); x.ellipse(s / 2, s / 2, s / 2, s / 3.2, 0, 0, 7); x.fill();
-    // sprinkle stars inside
+
     x.globalCompositeOperation = "lighter";
     for (let i = 0; i < 140; i++) {
       const a = Math.random() * 7, rr = Math.random() * (s / 2.4);
@@ -414,7 +384,6 @@
     return new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent: true, opacity: 0.8, depthWrite: false, blending: THREE.AdditiveBlending }));
   }
 
-  /* ---------- meteors with a fading binary trail (top of the view) ---------- */
   function digitTexture(ch, colorHex) {
     const s = 48, c = document.createElement("canvas"); c.width = c.height = s;
     const x = c.getContext("2d");
@@ -432,7 +401,7 @@
     return sp;
   }
   function spawnMeteor() {
-    // dark theme: bright neon streaks; light theme: darker streaks that read on a pale sky
+
     const colorHex = colorsDark
       ? (Math.random() < 0.5 ? 0x6fd3c4 : 0xf2b33d)
       : (Math.random() < 0.5 ? 0x0f766e : 0xb9741a);
@@ -440,14 +409,14 @@
     const fromLeft = Math.random() < 0.5;
     const startX = (fromLeft ? -1 : 1) * (40 + Math.random() * 18);
     const startY = 28 + Math.random() * 26;
-    const startZ = camera.position.z - 70 - Math.random() * 40;   // down the road, in view
+    const startZ = camera.position.z - 70 - Math.random() * 40;
     group.position.set(startX, startY, startZ);
     const vx = (fromLeft ? 1 : -1) * (26 + Math.random() * 16);
     const vy = -(5 + Math.random() * 5);
     const vz = (Math.random() - 0.5) * 8;
-    // size varies, but stays modest
-    const size = 0.55 + Math.random() * 1.0;          // ~0.55 .. 1.55
-    // head reads as a ball of fire that the numbers trail behind
+
+    const size = 0.55 + Math.random() * 1.0;
+
     const headColor = colorsDark ? 0xff7a2a : 0xb9741a;
     const head = new THREE.Sprite(new THREE.SpriteMaterial({ map: emberTex(), color: headColor, transparent: true, depthWrite: false, blending: colorsDark ? THREE.AdditiveBlending : THREE.NormalBlending, opacity: colorsDark ? 1 : 0.9 }));
     const hs = 3.4 * size; head.scale.set(hs, hs, 1); group.add(head);
@@ -459,7 +428,7 @@
     meteors.push({ group, head, colorHex, vx, vy, vz, size, trail: [], emitAcc: 0, life: 0, maxLife: 3.6, dir: new THREE.Vector3(vx, vy, vz).normalize() });
   }
   function updateMeteors(dt) {
-    if (!colorsDark) { if (meteors.length) clearMeteors(); return; }   // night only
+    if (!colorsDark) { if (meteors.length) clearMeteors(); return; }
     meteorTimer -= dt;
     if (meteorTimer <= 0 && meteors.length < 6) { spawnMeteor(); meteorTimer = 1 + Math.random() * 0.5; }
     for (let i = meteors.length - 1; i >= 0; i--) {
@@ -468,8 +437,7 @@
       m.group.position.x += m.vx * dt;
       m.group.position.y += m.vy * dt;
       m.group.position.z += m.vz * dt;
-      // emit a short stream behind the body: the newest ~6 are bright binary digits,
-      // anything older drops back into a dim fire tail (fire in shadow). Capped length.
+
       m.emitAcc += dt;
       const step = 0.06;
       while (m.emitAcc >= step) {
@@ -483,17 +451,17 @@
       }
       for (let j = m.trail.length - 1; j >= 0; j--) {
         const d = m.trail[j]; d.userData.age += dt;
-        const fromHead = (m.trail.length - 1) - j;   // 0 = closest to the body
+        const fromHead = (m.trail.length - 1) - j;
         const k = 1 - d.userData.age / 1.5;
         if (k <= 0) { scene.remove(d); d.material.dispose(); m.trail.splice(j, 1); continue; }
-        if (fromHead >= 6 && !d.userData.fire) {       // past the 6th digit it becomes an ember
+        if (fromHead >= 6 && !d.userData.fire) {
           d.userData.fire = true;
           d.material.map = emberTex();
           d.material.color = new THREE.Color(colorsDark ? 0x9a4a16 : 0x6b3a14);
           d.material.needsUpdate = true;
         }
         if (d.userData.fire) {
-          d.material.opacity = (colorsDark ? 0.5 : 0.42) * k;     // dim, in shadow
+          d.material.opacity = (colorsDark ? 0.5 : 0.42) * k;
           const sc = 2.6 * m.size * (0.5 + k * 0.6); d.scale.set(sc, sc, 1);
         } else {
           d.material.opacity = (colorsDark ? 1 : 0.85) * Math.min(1, k + 0.25);
@@ -511,12 +479,11 @@
     meteors = []; meteorTimer = 1.5;
   }
 
-  /* ---------- build scene ---------- */
   function build() {
     const P = palette();
     scene = new THREE.Scene();
     scene.background = new THREE.Color(P.bg);
-    // deeper fog in the dark theme so the galaxy reads against it
+
     scene.fog = new THREE.Fog(P.fog, colorsDark ? 26 : 32, colorsDark ? 90 : 92);
     camera = new THREE.PerspectiveCamera(58, viewW / viewH || 1.6, 0.1, 400);
     camera.position.set(0, 4.2, avatar ? avatar.position.z + 7.5 : WALK_MAX + 7.5);
@@ -525,17 +492,14 @@
     const key = new THREE.DirectionalLight(0xffffff, colorsDark ? 0.85 : 0.9); key.position.set(-6, 14, 6); scene.add(key);
     const rim = new THREE.DirectionalLight(colorsDark ? 0x6fd3c4 : 0xffffff, colorsDark ? 0.55 : 0.25); rim.position.set(8, 6, -10); scene.add(rim);
 
-    // backdrop (sky, Earth, city, stars, galaxy) and meteors live behind the road
     buildBackdrop(P);
 
-    // lunar/regolith dust skin on both themes: dark moon at night, neutral grey moon by day
     const groundTex = makeGroundTexture();
     groundTex.repeat.set(10, (Math.abs(ROAD_END) + 120) / 24);
     const ground = new THREE.Mesh(new THREE.PlaneGeometry(260, Math.abs(ROAD_END) + 120),
       new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 1, map: groundTex }));
     ground.rotation.x = -Math.PI / 2; ground.position.z = ROAD_END / 2; scene.add(ground);
 
-    // cyber road with a scrolling grid texture
     const roadLen = Math.abs(ROAD_END) + 60;
     const roadTex = makeGridTexture(P);
     roadTex.wrapS = roadTex.wrapT = THREE.RepeatWrapping;
@@ -546,26 +510,25 @@
     road.rotation.x = -Math.PI / 2; road.position.set(0, 0.02, ROAD_END / 2); scene.add(road);
     scene.userData.roadTex = roadTex;
 
-    // center dashes (emissive)
     const dashMat = new THREE.MeshBasicMaterial({ color: colorsDark ? 0x8fe8dc : P.roadEdge });
     const dashGeo = new THREE.PlaneGeometry(0.2, 1.6);
     for (let z = WALK_MAX; z > ROAD_END; z -= 3.2) {
       const d = new THREE.Mesh(dashGeo, dashMat); d.rotation.x = -Math.PI / 2; d.position.set(0, 0.04, z); scene.add(d);
     }
-    // glowing neon edge strips (two per side for a thicker glow)
+
     const edgeC = colorsDark ? 0x6fd3c4 : P.roadEdge;
     const edgeMat = new THREE.MeshBasicMaterial({ color: edgeC });
     [-3.18, 3.18].forEach((x) => {
       const e = new THREE.Mesh(new THREE.PlaneGeometry(0.14, roadLen), edgeMat);
       e.rotation.x = -Math.PI / 2; e.position.set(x, 0.05, ROAD_END / 2); scene.add(e);
-      // faint wider under-glow laid flat
+
       const g2 = new THREE.Mesh(new THREE.PlaneGeometry(0.5, roadLen),
         new THREE.MeshBasicMaterial({ color: edgeC, transparent: true, opacity: colorsDark ? 0.18 : 0.1 }));
       g2.rotation.x = -Math.PI / 2; g2.position.set(x, 0.035, ROAD_END / 2); scene.add(g2);
     });
 
     addSideHeader("WORK & STUDY", -1, P.work);
-    // certifications header in neon pink/magenta: distinct from the amber work label and the teal road, and reads on both themes with its outline
+
     addSideHeader("CERTIFICATIONS", 1, colorsDark ? 0x5fe6cf : 0x0f766e, colorsDark ? 0x06231d : 0xeafff9);
 
     leftStops.forEach((s) => addMarker(s, P));
@@ -591,7 +554,7 @@
   function addSideHeader(text, side, colorHex, strokeHex) {
     const m = new THREE.Mesh(new THREE.PlaneGeometry(4.9, 0.92),
       new THREE.MeshBasicMaterial({ map: textPlaque(text, colorHex, strokeHex), transparent: true, depthWrite: false }));
-    // smaller and pulled in from the edges so the full word sits on screen with a margin
+
     m.position.set(side * (SIDE_X - 0.4), 3.3, START_Z + 5);
     m.rotation.y = side < 0 ? Math.PI * 0.12 : -Math.PI * 0.12;
     scene.add(m);
@@ -609,7 +572,7 @@
     const body = new THREE.Mesh(new THREE.BoxGeometry(w, h, depth),
       new THREE.MeshStandardMaterial({ color: P.sign, roughness: 0.7, metalness: 0.1 }));
     body.position.y = h / 2; group.add(body);
-    // outline so the white cards stay defined on the light theme
+
     const edges = new THREE.LineSegments(new THREE.EdgesGeometry(body.geometry),
       new THREE.LineBasicMaterial({ color: colorsDark ? 0x33456b : 0x9aa2b4 }));
     edges.position.copy(body.position); group.add(edges);
@@ -643,7 +606,7 @@
     const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.08, 4, 8),
       new THREE.MeshStandardMaterial({ color: P.roadEdge, roughness: 0.6 }));
     pole.position.y = 2; g.add(pole);
-    // lamps only glow at night; by day they are unlit grey glass
+
     const head = new THREE.Mesh(new THREE.SphereGeometry(0.18, 12, 12),
       new THREE.MeshStandardMaterial({ color: colorsDark ? P.lamp : 0x9aa2b4, emissive: colorsDark ? P.lamp : 0x000000, emissiveIntensity: colorsDark ? 1.0 : 0, roughness: 0.5, metalness: 0.2 }));
     head.position.y = 4; g.add(head);
@@ -652,43 +615,37 @@
 
   function buildAvatar(P) {
     const g = new THREE.Group();
-    // realistic robot: brushed gunmetal body with charcoal joints and a single
-    // controlled glowing accent (visor / core). Mid metalness so it reads metallic
-    // without blowing out to white under bloom.
+
     const chassis = new THREE.MeshStandardMaterial({ color: colorsDark ? 0x5b6472 : 0x8a95a8, roughness: 0.45, metalness: 0.6 });
     const plate = new THREE.MeshStandardMaterial({ color: colorsDark ? 0x2b313c : 0x4c566b, roughness: 0.6, metalness: 0.5 });
-    const glowC = colorsDark ? 0x6fd3c4 : 0x0f766e;      // cyber teal
+    const glowC = colorsDark ? 0x6fd3c4 : 0x0f766e;
     const glow = new THREE.MeshStandardMaterial({ color: glowC, emissive: glowC, emissiveIntensity: colorsDark ? 0.8 : 0.4, roughness: 0.3 });
     const glowA = new THREE.MeshStandardMaterial({ color: P.work, emissive: P.work, emissiveIntensity: colorsDark ? 0.65 : 0.35, roughness: 0.3 });
 
     const box = (w, h, d, m) => new THREE.Mesh(new THREE.BoxGeometry(w, h, d), m);
     const cap = (r, l, m) => new THREE.Mesh(THREE.CapsuleGeometry ? new THREE.CapsuleGeometry(r, l, 5, 10) : new THREE.CylinderGeometry(r, r, l + r * 2, 12), m);
 
-    // pelvis
     const pelvis = box(0.5, 0.26, 0.34, plate); pelvis.position.y = 0.92; g.add(pelvis);
-    // torso: layered plates
+
     const torso = box(0.66, 0.72, 0.4, chassis); torso.position.y = 1.42; g.add(torso);
     const chestPlate = box(0.54, 0.46, 0.06, plate); chestPlate.position.set(0, 1.5, 0.21); g.add(chestPlate);
-    // chest reactor core (pulses)
+
     avatarCore = new THREE.Mesh(new THREE.SphereGeometry(0.1, 16, 16), glow);
     avatarCore.position.set(0, 1.5, 0.26); g.add(avatarCore);
     const collar = box(0.5, 0.1, 0.34, glow); collar.position.y = 1.82; g.add(collar);
-    // shoulders
+
     [-1, 1].forEach((s) => { const sh = box(0.2, 0.26, 0.36, plate); sh.position.set(s * 0.44, 1.66, 0); g.add(sh); });
 
-    // head: angular visor
     const neck = box(0.18, 0.12, 0.18, plate); neck.position.y = 1.92; g.add(neck);
     const head = box(0.42, 0.4, 0.4, chassis); head.position.y = 2.16; g.add(head);
     avatarVisor = box(0.46, 0.14, 0.06, glow); avatarVisor.position.set(0, 2.18, 0.2); g.add(avatarVisor);
-    // antenna
+
     const ant = new THREE.Mesh(new THREE.CylinderGeometry(0.015, 0.015, 0.3, 6), plate); ant.position.set(0.14, 2.5, -0.02); g.add(ant);
     const antTip = new THREE.Mesh(new THREE.SphereGeometry(0.04, 10, 10), glowA); antTip.position.set(0.14, 2.66, -0.02); g.add(antTip);
 
-    // back pack / thrusters
     const pack = box(0.46, 0.5, 0.2, plate); pack.position.set(0, 1.42, -0.3); g.add(pack);
     [-0.14, 0.14].forEach((x) => { const t = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.08, 0.16, 10), glowA); t.position.set(x, 1.14, -0.4); g.add(t); });
 
-    // arms (shoulder-pivoted groups so they swing)
     const makeArm = (side) => {
       const arm = new THREE.Group();
       const upper = cap(0.1, 0.3, chassis); upper.position.y = -0.22; arm.add(upper);
@@ -701,7 +658,6 @@
     };
     avatarArmL = makeArm(-1); avatarArmR = makeArm(1);
 
-    // legs (hip-pivoted groups)
     const makeLeg = (side) => {
       const leg = new THREE.Group();
       const thigh = cap(0.12, 0.34, chassis); thigh.position.y = -0.28; leg.add(thigh);
@@ -717,7 +673,6 @@
     return g;
   }
 
-  /* ---------------- selection + panel ---------------- */
   function selectStop(stop, instant) {
     if (!stop) { renderPanel(null); return; }
     selected = stop;
@@ -766,7 +721,6 @@
     panelEl.innerHTML = h;
   }
 
-  /* ---------------- input ---------------- */
   const WATCH = ["arrowup", "arrowdown", "arrowleft", "arrowright", "w", "a", "s", "d"];
   function norm(k) { return k.toLowerCase().replace("arrow", ""); }
   function onKeyDown(e) {
@@ -778,7 +732,6 @@
   function onKeyUp(e) { keys.delete(norm(e.key)); }
   function steer(side) { player.targetFacing = side * 0.5; const s = nearestOnSide(side); if (s) selectStop(s); }
 
-  /* ---------------- loop ---------------- */
   let lastTS = 0;
   function frameLoop(ts) {
     if (!running) return;
@@ -793,8 +746,7 @@
     const turnR = keys.has("right") || keys.has("d");
     if (turnL) player.targetFacing = -0.5;
     else if (turnR) player.targetFacing = 0.5;
-    else if (move) player.targetFacing = 0;   // walking straightens the view down the road
-    // (if idle and not steering, keep the last facing so the panel selection stays put)
+    else if (move) player.targetFacing = 0;
 
     const SPEED = 9;
     const prevZ = player.z;
@@ -809,14 +761,14 @@
     avatar.rotation.y = player.facing * -1.3;
     const moving = Math.abs(move) > 0;
     const t = ts / 1000;
-    // robot idle hover + walk cycle
+
     avatar.position.y = reduceMotion ? 0 : (Math.sin(t * 2) * 0.03 + Math.sin(player.bob) * 0.05 * (moving ? 1 : 0));
     if (avatarLegL && avatarLegR) {
       const sw = reduceMotion ? 0 : Math.sin(player.bob) * 0.5 * (moving ? 1 : 0);
       avatarLegL.rotation.x = sw; avatarLegR.rotation.x = -sw;
       if (avatarArmL && avatarArmR) { avatarArmL.rotation.x = -sw * 0.8; avatarArmR.rotation.x = sw * 0.8; }
     }
-    // pulsing reactor core + visor flicker
+
     if (avatarCore && !reduceMotion) {
       const pulse = 0.55 + Math.sin(t * 4) * 0.25;
       avatarCore.material.emissiveIntensity = colorsDark ? pulse + 0.2 : pulse * 0.4;
@@ -829,19 +781,15 @@
     camera.position.z += (camBackZ - camera.position.z) * Math.min(1, dt * 6);
     camera.lookAt(avatar.position.x + player.facing * 7, 1.6, avatar.position.z - 2);
 
-    // keep the backdrop ahead of the camera so sky, Earth and city stay on the horizon
     if (stars) { stars.position.z = camera.position.z; }
     if (galaxy) { galaxy.position.z = camera.position.z; galaxy.children.forEach((g, i) => { g.material.rotation += dt * (0.008 + i * 0.003); }); }
     if (skyPlane) skyPlane.position.z = camera.position.z + skyPlane.userData.baseZ;
     if (earth) earth.position.z = camera.position.z;
     if (city) city.position.z = camera.position.z;
 
-    // scroll the road grid only while walking, so it reads as the ground
-    // passing underneath rather than drifting when the figure is standing still
     const roadTex = scene.userData && scene.userData.roadTex;
     if (roadTex && !reduceMotion && moving) roadTex.offset.y = (roadTex.offset.y + move * dt * 0.25 + 1) % 1;
 
-    // meteors with fading binary trails
     if (!reduceMotion) updateMeteors(dt);
 
     if (!reduceMotion) markers.forEach((m, i) => { m.beacon.position.y = m.baseBeaconY + Math.sin(t * 2 + i) * 0.12; });
@@ -849,7 +797,6 @@
     if (composer) composer.render(); else renderer.render(scene, camera);
   }
 
-  /* ---------------- sizing / lifecycle ---------------- */
   function resize() {
     if (!canvasHolder || !renderer) return;
     const r = canvasHolder.getBoundingClientRect();
@@ -881,7 +828,6 @@
     resize();
   }
 
-  /* ---------------- public mount ---------------- */
   window.CV = {
     mount(stageEl) {
       if (!stageEl) return;

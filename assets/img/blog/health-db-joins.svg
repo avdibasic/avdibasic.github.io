@@ -20,7 +20,6 @@
 
   <rect class="ahd-panel" x="1" y="1" width="758" height="288" rx="14"/>
 
-  <!-- row 1 -->
   <rect class="ahd-box" x="44"  y="40"  width="196" height="76" rx="11"/>
   <text class="ahd-tbl"  x="142" y="84"  text-anchor="middle">samples</text>
 
@@ -28,7 +27,6 @@
   <text class="ahd-tbl"  x="589" y="73"  text-anchor="middle">quantity_samples</text>
   <text class="ahd-note" x="589" y="95"  text-anchor="middle">the measured value</text>
 
-  <!-- row 2 -->
   <rect class="ahd-box" x="44"  y="174" width="196" height="76" rx="11"/>
   <text class="ahd-tbl"  x="142" y="218" text-anchor="middle">objects</text>
 
@@ -36,17 +34,13 @@
   <text class="ahd-tbl"  x="589" y="207" text-anchor="middle">data_provenances</text>
   <text class="ahd-note" x="589" y="229" text-anchor="middle">device · OS version · timezone</text>
 
-  <!-- edges -->
-  <!-- samples -> quantity_samples -->
   <path class="ahd-edge" d="M240 78 L452 78" marker-end="url(#ahd-arrow)"/>
   <text class="ahd-lbl"  x="346" y="69" text-anchor="middle">data_id</text>
 
-  <!-- samples -> objects -->
   <path class="ahd-edge" d="M142 116 L142 168" marker-end="url(#ahd-arrow)"/>
   <rect class="ahd-lblbg" x="150" y="133" width="60" height="18"/>
   <text class="ahd-lbl"  x="180" y="146" text-anchor="middle">data_id</text>
 
-  <!-- objects -> data_provenances -->
   <path class="ahd-edge" d="M240 212 L452 212" marker-end="url(#ahd-arrow)"/>
   <text class="ahd-lbl"  x="346" y="203" text-anchor="middle">provenance</text>
 </svg>
