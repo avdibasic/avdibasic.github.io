@@ -3,6 +3,7 @@ window.SITE = {
   content: {
     about: "about.md",
     posts: [
+      "nginx2root.md",  
       "apple-health-database-forensics.md",
       "cve-2013-3900-winverifytrust.md",
       "apple-ai-agents-full-disk-access.md"
